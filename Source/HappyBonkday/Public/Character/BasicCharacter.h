@@ -6,7 +6,7 @@
 #include "GameFramework/Character.h"
 
 #include "InputActionValue.h"
-
+#include "CharacterTypes.h"
 
 #include "BasicCharacter.generated.h"
 
