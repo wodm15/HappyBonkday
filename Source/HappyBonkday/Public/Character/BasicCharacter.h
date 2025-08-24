@@ -17,7 +17,7 @@ class USpringArmComponent;
 class UCameraComponent;
 
 class UAnimMontage;
-
+class AItem;
 
 UCLASS()
 class HAPPYBONKDAY_API ABasicCharacter : public ACharacter
@@ -64,4 +64,10 @@ private:
     UPROPERTY(VisibleAnywhere)
     UCameraComponent* ViewCamera;
 
+	UPROPERTY(VisibleInstanceOnly)
+	AItem* OverlappingItem;
+
+public:
+	FORCEINLINE void SetOverlappingItem(AItem* Item) { OverlappingItem = Item; }
+	//FORCEINLINE ECharacterState GetCharacterState() const {return CharacterState; }
 };
