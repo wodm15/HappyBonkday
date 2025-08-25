@@ -18,6 +18,8 @@ class UCameraComponent;
 
 class UAnimMontage;
 class AItem;
+class AWeapon;
+class UAnimMontage;
 
 UCLASS()
 class HAPPYBONKDAY_API ABasicCharacter : public ACharacter
@@ -56,7 +58,29 @@ protected:
 	void EKeyPressed(const FInputActionValue& Value);
 	void Attack(const FInputActionValue& Value);
 
+	//Play Anim Montage
+	void PlayAttackMontage();
+
+	UFUNCTION(BlueprintCallable)
+	void AttackEnd();
+	bool CanAttack();
+
+	void PlayEquipMontage(FName SectionName);
+	bool CanDisarm();
+	bool CanArm();
+
+	UFUNCTION(BlueprintCallable)
+	void Disarm();
+	UFUNCTION(BlueprintCallable)
+	void Arm();
+	UFUNCTION(BlueprintCallable)
+	void FinishEquipping();
+
 private:
+	ECharacterState CharacterState = ECharacterState::ECS_Unequipped;
+
+	UPROPERTY(BlueprintReadWrite , meta = (AllowPrivateAccess = "true"))
+	EActionState ActionState = EActionState::EAS_Unoccupied;
 
 	//camera
 	UPROPERTY(VisibleAnywhere)
@@ -64,10 +88,19 @@ private:
     UPROPERTY(VisibleAnywhere)
     UCameraComponent* ViewCamera;
 
+	//equip
 	UPROPERTY(VisibleInstanceOnly)
 	AItem* OverlappingItem;
+	UPROPERTY(VisibleAnywhere , Category = Weapon)
+	AWeapon* EquippedWeapon;
+
+	//Animation Montage
+	UPROPERTY(EditDefaultsOnly , Category = Montages)
+	UAnimMontage* AttackMontage;
+	UPROPERTY(EditDefaultsOnly , Category = Montages)
+	UAnimMontage* EquipMontage;
 
 public:
 	FORCEINLINE void SetOverlappingItem(AItem* Item) { OverlappingItem = Item; }
-	//FORCEINLINE ECharacterState GetCharacterState() const {return CharacterState; }
+	FORCEINLINE ECharacterState GetCharacterState() const {return CharacterState; }
 };

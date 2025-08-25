@@ -1,3 +1,5 @@
+// JY Sun All Rights Reserved
+
 #pragma once
 
 UENUM(BlueprintType)

@@ -30,6 +30,8 @@ public:
 	UPROPERTY(EditAnywhere) 
 	class UNiagaraComponent* EmbersEffect;
 
+	EItemState ItemState = EItemState::EIS_Hovering;
+
 protected:
 	virtual void BeginPlay() override;
 

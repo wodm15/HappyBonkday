@@ -33,6 +33,10 @@ void AItem::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	if(ItemState == EItemState::EIS_Hovering)
+	{
+
+	}
 }
 
 
