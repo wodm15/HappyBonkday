@@ -113,7 +113,21 @@ void ABasicCharacter::EKeyPressed(const FInputActionValue& Value)
 			EquippedWeapon = OverlappingWeapon;
 
 		}
-	
+		else
+		{
+		if(CanDisarm())
+		{
+			PlayEquipMontage(FName("Unequip"));
+			CharacterState = ECharacterState::ECS_Unequipped;
+			ActionState = EActionState::EAS_EquippingWeapon;
+		}
+		else if(CanArm())
+		{
+			PlayEquipMontage(FName("Equip"));
+			CharacterState = ECharacterState::ECS_EquippedOneHandedWeapon;
+			ActionState = EActionState::EAS_EquippingWeapon;
+		}
+		}
 
 }
 
@@ -180,7 +194,7 @@ void ABasicCharacter::PlayAttackMontage()
 				break;
 
 			case 1:
-				SelectionName = FName("Attack1");
+				SelectionName = FName("Attack2");
 				break;
 
 			default:
@@ -207,9 +221,16 @@ void ABasicCharacter::AttackEnd()
 	ActionState =  EActionState::EAS_Unoccupied;
 }
 
-
-
 void ABasicCharacter::FinishEquipping()
 {
 	ActionState = EActionState::EAS_Unoccupied;
+}
+
+void ABasicCharacter::SetWeaponCollisionEnabled(ECollisionEnabled::Type CollisionEnabled)
+{
+	if(EquippedWeapon && EquippedWeapon->GetWeaponBox() )
+	{
+		EquippedWeapon->GetWeaponBox()->SetCollisionEnabled(CollisionEnabled);
+		//EquippedWeapon->IgnoreActors.Empty();
+	}
 }
