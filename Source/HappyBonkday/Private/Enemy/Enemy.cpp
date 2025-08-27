@@ -4,7 +4,10 @@
 #include "Enemy/Enemy.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Components/CapsuleComponent.h"
-// Sets default values
+#include "Kismet/KismetSystemLibrary.h"
+#include "Kismet/GamePlayStatics.h"
+
+
 AEnemy::AEnemy()
 {
 
@@ -40,9 +43,23 @@ void AEnemy::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 }
 
 
-void AEnemy::GetHit(const FVector& ImpactPoint)
+void AEnemy::GetHit_Implementation(const FVector& ImpactPoint)
 {
-	PlayHitReactMontage(FName("FromLeft"));
+
+	DirectionalHitReact(ImpactPoint);
+
+	if(HitSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, HitSound, ImpactPoint);
+	}
+    if(HitParticles && GetWorld())
+    {
+        UGameplayStatics::SpawnEmitterAtLocation(
+            GetWorld(),
+            HitParticles,
+            ImpactPoint
+        );
+    }
 }
 
 
@@ -54,4 +71,34 @@ void AEnemy::PlayHitReactMontage(const FName& SectionName)
 		AnimInstance->Montage_Play(HitReactMontage);
 		AnimInstance->Montage_JumpToSection(SectionName, HitReactMontage);
 	}
+}
+
+void AEnemy::DirectionalHitReact(const FVector& ImpactPoint)
+{
+    const FVector Forward = GetActorForwardVector();
+    const FVector ToHit = (ImpactPoint - GetActorLocation()).GetSafeNormal();
+
+    float CosTheta = FVector::DotProduct(Forward, ToHit);
+    float Theta = FMath::Acos(CosTheta);
+    Theta = FMath::RadiansToDegrees(Theta);
+
+    FVector Cross = FVector::CrossProduct(Forward, ToHit);
+    if (Cross.Z < 0)
+    {
+        Theta *= -1.f; // 왼쪽이면 음수(언리얼은 왼손 법칙)
+    }
+
+    FName Section = FName("FromBack");
+    if (Theta >= -45.f && Theta < 45.f)
+        Section = FName("FromFront");
+    else if (Theta >= -135.f && Theta < 45.f)
+        Section = FName("FromLeft");
+    else if (Theta >= 45.f && Theta < 135.f)
+        Section = FName("FromRight");
+
+    PlayHitReactMontage(Section);
+
+    // 디버그
+    //UKismetSystemLibrary::DrawDebugArrow(this, GetActorLocation(), GetActorLocation() + Forward * 60.f, 5.f, FColor::Blue, 5.f);
+    //UKismetSystemLibrary::DrawDebugArrow(this, GetActorLocation(), GetActorLocation() + ToHit * 60.f, 5.f, FColor::Green, 5.f);
 }

@@ -20,17 +20,26 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	virtual void GetHit(const FVector& ImpactPoint) override;
+	virtual void GetHit_Implementation(const FVector& ImpactPoint) override;
 
 protected:
 	virtual void BeginPlay() override;
 
 	//Play Anim Montage
 	void PlayHitReactMontage(const FName& SectionName);
+	void DirectionalHitReact(const FVector& ImpactPoint);
 
 private:
 
 	//Animation Montage
 	UPROPERTY(EditDefaultsOnly , Category = Montages)
 	UAnimMontage* HitReactMontage;
+
+	//Sound
+	UPROPERTY(EditAnywhere , Category = Sounds)
+	USoundBase* HitSound;
+
+	//Effect
+	UPROPERTY(EditAnywhere , Category = VisibleEffect)
+	UParticleSystem* HitParticles;
 };
