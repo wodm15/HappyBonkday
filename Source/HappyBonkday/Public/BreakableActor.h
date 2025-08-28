@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Interfaces/HitInterface.h"
+#include "Treasure.h"
 #include "BreakableActor.generated.h"
 
 class UGeometryCollectionComponent;
@@ -25,6 +26,13 @@ protected:
 	UPROPERTY(VisibleAnywhere , BlueprintReadWrite)
 	UGeometryCollectionComponent* GeometryCollection;
 
-public:	
+	UPROPERTY(VisibleAnywhere , BlueprintReadWrite)
+	class UCapsuleComponent* Capsule;
+
+private:
+	UPROPERTY(EditAnywhere, Category = "Breakable Properties")
+	TArray<TSubclassOf<class ATreasure>> TreasureClasses;
+
+	bool bBroken = false;
 
 };
