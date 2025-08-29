@@ -11,7 +11,9 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "AIController.h"
 #include "Navigation/PathFollowingComponent.h"
-
+#include "Perception/AIPerceptionComponent.h"
+#include "Perception/AISense_Sight.h"
+#include "Perception/AISenseConfig_Sight.h"
 
 AEnemy::AEnemy()
 {
@@ -33,6 +35,18 @@ AEnemy::AEnemy()
     bUseControllerRotationPitch = false;
     bUseControllerRotationRoll = false;
     bUseControllerRotationYaw = false;
+
+    AIPerception = CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("AIPerception"));
+    UAISenseConfig_Sight* SightConfig = CreateDefaultSubobject<UAISenseConfig_Sight>(TEXT("SightConfig"));
+    SightConfig->SightRadius = 1000.f;
+    SightConfig->LoseSightRadius = 1200.f;
+    SightConfig->PeripheralVisionAngleDegrees = 60.f;
+    SightConfig->SetMaxAge(5.f);
+    SightConfig->DetectionByAffiliation.bDetectEnemies = true;
+    SightConfig->DetectionByAffiliation.bDetectNeutrals = true;
+    SightConfig->DetectionByAffiliation.bDetectFriendlies = true;
+    AIPerception->ConfigureSense(*SightConfig);
+    AIPerception->SetDominantSense(SightConfig->GetSenseImplementation());
 }
 
 void AEnemy::BeginPlay()
@@ -45,26 +59,79 @@ void AEnemy::BeginPlay()
     }
     EnemyController = Cast<AAIController>(GetController());
     MoveToTarget(PatrolTarget);
+
+    if(AIPerception)
+    {
+        AIPerception->OnTargetPerceptionUpdated.AddDynamic(this, &AEnemy::PawnSeen);
+    }
 }
+
+
+void AEnemy::PawnSeen(AActor* SeenPawn, FAIStimulus Stimulus)
+{
+    if(!SeenPawn->ActorHasTag("Player")) return; // Player 태그 없으면 무시
+    if(EnemyState ==  EEnemyState::EES_Chasing) return;
+
+    if(Stimulus.WasSuccessfullySensed())
+    {   
+        GetWorld()->GetTimerManager().ClearTimer(PatrolTimer);
+        GetCharacterMovement()->MaxWalkSpeed = 300.f;
+        CombatTarget = SeenPawn;
+        
+        if(EnemyState != EEnemyState::EES_Attacking)
+        {
+            EnemyState = EEnemyState::EES_Chasing;
+            MoveToTarget(CombatTarget);
+        }
+    }
+}
+
+
 
 void AEnemy::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-    CheckCombatTarget();
-    CheckPatrolTarget();
+    if(EnemyState > EEnemyState::EES_Patrolling)
+    {
+        CheckCombatTarget();
+    }
+    else
+    {
+        CheckPatrolTarget();
+    }
 }
 
 void AEnemy::CheckCombatTarget()
 {
     if(!InTargetRange(CombatTarget , CombatRadius))
     {
+        //outside combat radius , then lose interest
         CombatTarget = nullptr;
         if(HealthBarWidget)
         {
             HealthBarWidget->SetVisibility(false);
         }
+        EnemyState = EEnemyState::EES_Patrolling;
+        GetCharacterMovement()->MaxWalkSpeed = 125.f;
+        MoveToTarget(PatrolTarget);
+        UE_LOG(LogTemp, Display, TEXT("lose interest"));
     }
+    else if(!InTargetRange(CombatTarget , AttackRadius) && EnemyState != EEnemyState::EES_Chasing)
+    {
+        //outside Attack radius, then Chasing player
+        EnemyState = EEnemyState::EES_Chasing;
+        GetCharacterMovement()->MaxWalkSpeed = 300.f;
+        MoveToTarget(CombatTarget);
+         UE_LOG(LogTemp, Display, TEXT("chasing"));
+    }
+    else if(InTargetRange(CombatTarget , AttackRadius) && EnemyState != EEnemyState::EES_Attacking)
+    {
+        EnemyState = EEnemyState::EES_Attacking;
+         UE_LOG(LogTemp, Display, TEXT("attack"));
+        //todo: attack montage
+    }
+
 }
 
 void AEnemy::CheckPatrolTarget()
@@ -91,7 +158,7 @@ void AEnemy::MoveToTarget(AActor* Target)
     if(EnemyController == nullptr || Target == nullptr) return;
 
     FAIMoveRequest MoveRequest;
-    MoveRequest.SetGoalActor(PatrolTarget);
+    MoveRequest.SetGoalActor(Target);
     MoveRequest.SetAcceptanceRadius(15.f);
     EnemyController->MoveTo(MoveRequest);
 }
@@ -205,6 +272,11 @@ float AEnemy::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEv
         }
 
         CombatTarget = EventInstigator->GetPawn();
+
+        //when hit ? enemy anger
+        EnemyState = EEnemyState::EES_Chasing;
+        GetCharacterMovement()->MaxWalkSpeed = 300.f;
+        MoveToTarget(CombatTarget);
     }
 
     return DamageAmount;

@@ -51,6 +51,9 @@ void ABasicCharacter::BeginPlay()
 			}
 		}
 	}
+
+	Tags.Add(FName("Player"));
+
 	
 }
 
