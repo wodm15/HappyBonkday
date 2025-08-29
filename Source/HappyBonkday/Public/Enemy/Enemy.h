@@ -12,6 +12,7 @@
 class UAnimMontage;
 class UAttributeComponent;
 class UHealthBarComponent;
+class AAIController;
 
 UCLASS()
 class HAPPYBONKDAY_API AEnemy : public ACharacter , public IHitInterface
@@ -34,6 +35,12 @@ protected:
 	void DirectionalHitReact(const FVector& ImpactPoint);
 
 	void Die(const FVector& ImpactPoint);
+	bool InTargetRange(AActor* Target , double Radius);
+	void MoveToTarget(AActor* Target);
+	AActor* ChoosePatrolTarget();
+
+	void CheckCombatTarget();
+	void CheckPatrolTarget();
 
 	UPROPERTY(BlueprintReadOnly)
 	EDeathPos DeathPos = EDeathPos::EDP_Alive;
@@ -66,4 +73,26 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	double CombatRadius = 500.f;
+
+	//navigation
+
+	UPROPERTY()
+	AAIController* EnemyController;
+	//current patrol target
+	UPROPERTY(EditInstanceOnly , Category= "AI Navigation")
+	AActor* PatrolTarget;
+
+	UPROPERTY(EditInstanceOnly , Category= "AI Navigation")
+	TArray<AActor*> PatrolTargets;
+
+	UPROPERTY(EditAnywhere)
+	double PatrolRadius = 200.f;
+
+	FTimerHandle PatrolTimer;
+	void PatrolTimerFinished();
+
+	UPROPERTY(EditAnywhere , Category= "AI Navigation")
+	float WaitMin = 5.f;
+	UPROPERTY(EditAnywhere , Category= "AI Navigation")
+	float WaitMax = 10.f;
 };
