@@ -148,7 +148,7 @@ bool ABasicCharacter::CanArm()
            EquippedWeapon;
 }
 
-void ABasicCharacter::Attack(const FInputActionValue& Value)
+void ABasicCharacter::Attack()
 {
 	if(CanAttack())
 	{
@@ -227,13 +227,4 @@ void ABasicCharacter::AttackEnd()
 void ABasicCharacter::FinishEquipping()
 {
 	ActionState = EActionState::EAS_Unoccupied;
-}
-
-void ABasicCharacter::SetWeaponCollisionEnabled(ECollisionEnabled::Type CollisionEnabled)
-{
-	if(EquippedWeapon && EquippedWeapon->GetWeaponBox() )
-	{
-		EquippedWeapon->GetWeaponBox()->SetCollisionEnabled(CollisionEnabled);
-		EquippedWeapon->IgnoreActors.Empty();
-	}
 }

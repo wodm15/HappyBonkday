@@ -3,20 +3,17 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Character.h"
-#include "Interfaces/HitInterface.h"
+#include "Character/BaseCharacter.h"
 #include "Character/CharacterTypes.h"
 
 #include "Enemy.generated.h"
 
-class UAnimMontage;
-class UAttributeComponent;
 class UHealthBarComponent;
 class AAIController;
 class UAIPerceptionComponent;
 
 UCLASS()
-class HAPPYBONKDAY_API AEnemy : public ACharacter , public IHitInterface
+class HAPPYBONKDAY_API AEnemy : public ABaseCharacter 
 {
 	GENERATED_BODY()
 
@@ -31,11 +28,9 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
-	//Play Anim Montage
-	void PlayHitReactMontage(const FName& SectionName);
-	void DirectionalHitReact(const FVector& ImpactPoint);
 
-	void Die(const FVector& ImpactPoint);
+
+	virtual void Die(const FVector& ImpactPoint) override;
 	bool InTargetRange(AActor* Target , double Radius);
 	void MoveToTarget(AActor* Target);
 	AActor* ChoosePatrolTarget();
@@ -52,10 +47,6 @@ protected:
 private:
 //component
 
-	//Attribute
-	UPROPERTY(VisibleAnywhere)
-	UAttributeComponent* Attributes;
-
 	//HUD (Health Bar)
 	UPROPERTY(VisibleAnywhere)
 	UHealthBarComponent* HealthBarWidget;
@@ -63,19 +54,7 @@ private:
 	UPROPERTY(VisibleAnywhere)
 	UAIPerceptionComponent* AIPerception;
 //
-	//Animation Montage
-	UPROPERTY(EditDefaultsOnly , Category = Montages)
-	UAnimMontage* HitReactMontage;
-	UPROPERTY(EditDefaultsOnly , Category = Montages)
-	UAnimMontage* DeathMontage;
 
-	//Sound
-	UPROPERTY(EditAnywhere , Category = Sounds)
-	USoundBase* HitSound;
-
-	//Effect
-	UPROPERTY(EditAnywhere , Category = VisibleEffect)
-	UParticleSystem* HitParticles;
 
 	UPROPERTY()
 	AActor* CombatTarget;
