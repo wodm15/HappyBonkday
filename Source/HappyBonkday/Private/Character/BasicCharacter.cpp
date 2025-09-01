@@ -11,7 +11,6 @@
 
 #include "GameFramework/SpringArmComponent.h"   
 #include "Camera/CameraComponent.h"   
-#include "Animation/AnimMontage.h"
 #include "Components/BoxComponent.h"
 
 #include "Item.h"
@@ -150,6 +149,8 @@ bool ABasicCharacter::CanArm()
 
 void ABasicCharacter::Attack()
 {
+	Super::Attack();
+
 	if(CanAttack())
 	{
 		ActionState = EActionState::EAS_Attacking;
@@ -181,32 +182,6 @@ void ABasicCharacter::Arm()
 	}
 }
 
-void ABasicCharacter::PlayAttackMontage()
-{
-	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-	if(AnimInstance && AttackMontage)
-	{
-		AnimInstance->Montage_Play(AttackMontage);
-		const int32 Selection = FMath::RandRange(0,1);
-		FName SelectionName = FName();
-
-		switch(Selection)
-		{
-			case 0:
-				SelectionName = FName("Attack1");
-				break;
-
-			case 1:
-				SelectionName = FName("Attack2");
-				break;
-
-			default:
-				break;
-
-		}
-		AnimInstance->Montage_JumpToSection(SelectionName, AttackMontage);
-	}
-}
 
 void ABasicCharacter::PlayEquipMontage(FName SectionName)
 {

@@ -57,7 +57,6 @@ protected:
 	virtual void Attack() override;
 
 	//Play Anim Montage
-	virtual void PlayAttackMontage() override;
 
 	virtual void AttackEnd() override;
 	virtual bool CanAttack() override;
