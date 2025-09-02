@@ -2,26 +2,34 @@
 
 
 #include "Character/BasicCharacter.h"
-
 #include "Components/InputComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 
 #include "GameFramework/CharacterMovementComponent.h"
-
+#include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/SpringArmComponent.h"   
 #include "Camera/CameraComponent.h"   
-#include "Components/BoxComponent.h"
+
 
 #include "Item.h"
 #include "Weapon/Weapon.h"
 
 ABasicCharacter::ABasicCharacter()
 {
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationRoll = false;
 	bUseControllerRotationYaw = false;
+
+	GetCharacterMovement()->bOrientRotationToMovement = true;
+	GetCharacterMovement()->RotationRate = FRotator(0.f , 400.f , 0.f);
+
+	GetMesh()->SetCollisionObjectType(ECollisionChannel::ECC_WorldDynamic);
+	GetMesh()->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility , ECollisionResponse::ECR_Block);
+	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldDynamic , ECollisionResponse::ECR_Overlap);
+	GetMesh()->SetGenerateOverlapEvents(true);
 
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArm->SetupAttachment(GetRootComponent());
@@ -57,12 +65,6 @@ void ABasicCharacter::BeginPlay()
 }
 
 
-void ABasicCharacter::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-}
-
 void ABasicCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
@@ -76,6 +78,12 @@ void ABasicCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 		EnhancedInputComponent->BindAction(AttackAction , ETriggerEvent::Triggered , this , &ABasicCharacter::Attack);
 	}
 
+}
+
+void ABasicCharacter::GetHit_Implementation(const FVector& ImpactPoint)
+{
+	PlayHitSound(ImpactPoint);
+    SpawnHitParticles(ImpactPoint);
 }
 
 void ABasicCharacter::Move(const FInputActionValue& Value)
@@ -107,28 +115,20 @@ void ABasicCharacter::Look(const FInputActionValue& Value)
 void ABasicCharacter::EKeyPressed(const FInputActionValue& Value)
 {
 	AWeapon* OverlappingWeapon = Cast<AWeapon>(OverlappingItem);
-		if(OverlappingWeapon)
+	if(OverlappingWeapon)
 		{
-			OverlappingWeapon->Equip(GetMesh() , FName("HandRightSocket") , this , this);
-			CharacterState = ECharacterState::ECS_EquippedOneHandedWeapon;
-			OverlappingItem = nullptr;
-			EquippedWeapon = OverlappingWeapon;
-
+			EquipWeapon(OverlappingWeapon);
 		}
-		else
+	else
 		{
 		if(CanDisarm())
-		{
-			PlayEquipMontage(FName("Unequip"));
-			CharacterState = ECharacterState::ECS_Unequipped;
-			ActionState = EActionState::EAS_EquippingWeapon;
-		}
+			{
+				DisArm();
+			}
 		else if(CanArm())
-		{
-			PlayEquipMontage(FName("Equip"));
-			CharacterState = ECharacterState::ECS_EquippedOneHandedWeapon;
-			ActionState = EActionState::EAS_EquippingWeapon;
-		}
+			{
+				Arm();
+			}
 		}
 
 }
@@ -145,6 +145,21 @@ bool ABasicCharacter::CanArm()
     return ActionState == EActionState::EAS_Unoccupied && 
            CharacterState == ECharacterState::ECS_Unequipped &&
            EquippedWeapon;
+}
+
+void ABasicCharacter::DisArm()
+{
+	PlayEquipMontage(FName("Unequip"));
+	CharacterState = ECharacterState::ECS_Unequipped;
+	ActionState = EActionState::EAS_EquippingWeapon;
+}
+
+
+void ABasicCharacter::Arm()
+{
+	PlayEquipMontage(FName("Equip"));
+	CharacterState = ECharacterState::ECS_EquippedOneHandedWeapon;
+	ActionState = EActionState::EAS_EquippingWeapon;
 }
 
 void ABasicCharacter::Attack()
@@ -165,7 +180,7 @@ bool ABasicCharacter::CanAttack()
 }
 
 
-void ABasicCharacter::Disarm()
+void ABasicCharacter::AttachWeaponToBack()
 {
 	if(EquippedWeapon)
 	{
@@ -174,7 +189,7 @@ void ABasicCharacter::Disarm()
 }
 
 
-void ABasicCharacter::Arm()
+void ABasicCharacter::AttachWeaponToHand()
 {
 	if(EquippedWeapon)
 	{
@@ -182,6 +197,14 @@ void ABasicCharacter::Arm()
 	}
 }
 
+
+void ABasicCharacter::EquipWeapon(AWeapon* Weapon)
+{
+		Weapon->Equip(GetMesh() , FName("HandRightSocket") , this , this);
+		CharacterState = ECharacterState::ECS_EquippedOneHandedWeapon;
+		OverlappingItem = nullptr;
+		EquippedWeapon = Weapon;
+}
 
 void ABasicCharacter::PlayEquipMontage(FName SectionName)
 {

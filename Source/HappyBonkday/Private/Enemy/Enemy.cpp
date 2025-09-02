@@ -3,8 +3,6 @@
 
 #include "Enemy/Enemy.h"
 #include "Components/SkeletalMeshComponent.h"
-#include "Components/CapsuleComponent.h"
-#include "Kismet/KismetSystemLibrary.h"
 #include "Components/AttributeComponent.h"
 #include "HUD/HealthBarComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -24,10 +22,7 @@ AEnemy::AEnemy()
 	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility , ECollisionResponse::ECR_Block);
 	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera , ECollisionResponse::ECR_Ignore);
 	GetMesh()->SetGenerateOverlapEvents(true);
-	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera , ECollisionResponse::ECR_Ignore);
-
-
-
+	
     HealthBarWidget = CreateDefaultSubobject<UHealthBarComponent>(TEXT("HealthBar"));
     HealthBarWidget->SetupAttachment(GetRootComponent());
 
@@ -38,9 +33,9 @@ AEnemy::AEnemy()
 
     AIPerception = CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("AIPerception"));
     UAISenseConfig_Sight* SightConfig = CreateDefaultSubobject<UAISenseConfig_Sight>(TEXT("SightConfig"));
-    SightConfig->SightRadius = 1000.f;
-    SightConfig->LoseSightRadius = 1200.f;
-    SightConfig->PeripheralVisionAngleDegrees = 60.f;
+    SightConfig->SightRadius = 1500.f;
+    SightConfig->LoseSightRadius = 1800.f;
+    SightConfig->PeripheralVisionAngleDegrees = 120.f;
     SightConfig->SetMaxAge(5.f);
     SightConfig->DetectionByAffiliation.bDetectEnemies = true;
     SightConfig->DetectionByAffiliation.bDetectNeutrals = true;
@@ -52,19 +47,22 @@ AEnemy::AEnemy()
 void AEnemy::BeginPlay()
 {
 	Super::BeginPlay();
+    if(AIPerception) AIPerception->OnTargetPerceptionUpdated.AddDynamic(this, &AEnemy::PawnSeen);
+    InitializeEnemy();
 
-    if(HealthBarWidget)
-    {
-        HealthBarWidget->SetVisibility(false);
-    }
+    Tags.Add(FName("Enemy"));
+}
+
+void AEnemy::InitializeEnemy()
+{
     EnemyController = Cast<AAIController>(GetController());
+    HideHealthBar();
     MoveToTarget(PatrolTarget);
+    SpawnDefaultWeapon();
+}
 
-    if(AIPerception)
-    {
-        AIPerception->OnTargetPerceptionUpdated.AddDynamic(this, &AEnemy::PawnSeen);
-    }
-
+void AEnemy::SpawnDefaultWeapon()
+{
     UWorld* World = GetWorld();
     if(World && WeaponClass)
     {
@@ -76,13 +74,14 @@ void AEnemy::BeginPlay()
 
 void AEnemy::Attack()
 {
+    EnemyState = EEnemyState::EES_Engaged;
     Super::Attack();
     PlayAttackMontage();
 }
 
 bool AEnemy::CanAttack()
 {
-    bool bCanAttack = IsInsideAttackRadius() && !IsAttacking() && !IsDead();
+    bool bCanAttack = IsInsideAttackRadius() && !IsAttacking() && !IsEngaged() && !IsDead();
     return bCanAttack;
 }
 
@@ -94,6 +93,12 @@ void AEnemy::HandleDamage(float DamageAmount)
     {
         HealthBarWidget->SetHealthPercent(Attributes->GetHealthPercent());
     }
+}
+
+void AEnemy::AttackEnd()
+{
+    EnemyState = EEnemyState::EES_NoState;
+    CheckCombatTarget();
 }
 
 
@@ -142,14 +147,13 @@ void AEnemy::CheckCombatTarget()
         {
             StartPatrolling();
         }
-
-        UE_LOG(LogTemp, Display, TEXT("lose interest"));
     }
+
     else if(IsOutsideAttackRadius() && !IsChasing())
     {
         ClearAttackTimer();
-        ChaseTarget();
-         UE_LOG(LogTemp, Display, TEXT("chasing"));
+        if(!IsEngaged()) ChaseTarget();
+        
     }
     else if(CanAttack())
     {
@@ -163,7 +167,7 @@ void AEnemy::CheckPatrolTarget()
     if(InTargetRange(PatrolTarget , PatrolRadius))
     {
         PatrolTarget = ChoosePatrolTarget();
-        const float WaitTime = FMath::RandRange(WaitMin, WaitMax);
+        const float WaitTime = FMath::RandRange(PatrolWaitMin, PatrolWaitMax);
         GetWorldTimerManager().SetTimer(PatrolTimer, this, &AEnemy::PatrolTimerFinished, WaitTime);
     }
 }
@@ -212,7 +216,7 @@ AActor* AEnemy::ChoosePatrolTarget()
 void AEnemy::GetHit_Implementation(const FVector& ImpactPoint)
 {
 
-    ShowHealthBar();
+    if (!IsDead()) ShowHealthBar();
     if(IsAlive())
     {
         DirectionalHitReact(ImpactPoint);   
@@ -238,7 +242,16 @@ float AEnemy::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEv
     }
 
     CombatTarget = EventInstigator->GetPawn();
-    ChaseTarget();
+
+	if (IsInsideAttackRadius())
+	{
+		EnemyState = EEnemyState::EES_Attacking;
+	}
+	else if (IsOutsideAttackRadius())
+	{
+		ChaseTarget();
+	}
+
     return DamageAmount;
 }
 
@@ -373,7 +386,7 @@ bool AEnemy::IsOutsideAttackRadius()
 
 bool AEnemy::IsInsideAttackRadius()
 {
-    return InTargetRange(CombatTarget , AttackRadius);
+    return InTargetRange(CombatTarget, AttackRadius);
 }
 
 bool AEnemy::IsChasing()
@@ -388,7 +401,7 @@ bool AEnemy::IsAttacking()
 
 void AEnemy::StartAttackTimer()
 {
-    //EnemyState = EEnemyState::EES_Attacking;
+    EnemyState = EEnemyState::EES_Attacking;
     const float AttackTime = FMath::RandRange(AttackMin, AttackMax);
     GetWorldTimerManager().SetTimer(AttackTimer, this , &AEnemy::Attack, AttackTime);
 }

@@ -27,48 +27,46 @@ class HAPPYBONKDAY_API ABasicCharacter : public ABaseCharacter
 public:
 
 	ABasicCharacter();
-	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
+	virtual void GetHit_Implementation(const FVector& ImpactPoint) override;
 	
 protected:
-
 	virtual void BeginPlay() override;
 
-	//input
+	void Move(const FInputActionValue& Value);
+	void Look(const FInputActionValue& Value);
+	void EKeyPressed(const FInputActionValue& Value);
+
+	virtual void Attack() override;
+	virtual void AttackEnd() override;
+	virtual bool CanAttack() override;
+
+	void EquipWeapon(AWeapon* Weapon);
+	void PlayEquipMontage(FName SectionName);
+	bool CanDisarm();
+	bool CanArm();
+	void DisArm();
+	void Arm();
+
 	UPROPERTY(EditAnywhere , BlueprintReadOnly , Category = Input)
 	UInputMappingContext* SlashContext;
-
 	UPROPERTY(EditAnywhere , BlueprintReadOnly , Category = Input)
 	UInputAction* MovementAction;
 	UPROPERTY(EditAnywhere , BlueprintReadOnly , Category = Input)
 	UInputAction* LookAction;
 	UPROPERTY(EditAnywhere , BlueprintReadOnly , Category = Input)
 	UInputAction* JumpAction;
-
 	UPROPERTY(EditAnywhere , BlueprintReadOnly , Category = Input)
 	UInputAction* EKeyPressedAction;
 	UPROPERTY(EditAnywhere , BlueprintReadOnly , Category = Input)
 	UInputAction* AttackAction;
 
-	void Move(const FInputActionValue& Value);
-	void Look(const FInputActionValue& Value);
-	void EKeyPressed(const FInputActionValue& Value);
-	virtual void Attack() override;
 
-	//Play Anim Montage
-
-	virtual void AttackEnd() override;
-	virtual bool CanAttack() override;
-
-	void PlayEquipMontage(FName SectionName);
-	bool CanDisarm();
-	bool CanArm();
 
 	UFUNCTION(BlueprintCallable)
-	void Disarm();
+	void AttachWeaponToBack();
 	UFUNCTION(BlueprintCallable)
-	void Arm();
+	void AttachWeaponToHand();
 	UFUNCTION(BlueprintCallable)
 	void FinishEquipping();
 
