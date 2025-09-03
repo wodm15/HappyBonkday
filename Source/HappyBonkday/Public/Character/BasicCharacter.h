@@ -28,7 +28,7 @@ public:
 
 	ABasicCharacter();
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-	virtual void GetHit_Implementation(const FVector& ImpactPoint) override;
+	virtual void GetHit_Implementation(const FVector& ImpactPoint, AActor* Hiiter) override;
 	
 protected:
 	virtual void BeginPlay() override;
@@ -69,6 +69,8 @@ protected:
 	void AttachWeaponToHand();
 	UFUNCTION(BlueprintCallable)
 	void FinishEquipping();
+	UFUNCTION(BlueprintCallable)
+	void HitReactEnd();
 
 private:
 	ECharacterState CharacterState = ECharacterState::ECS_Unequipped;

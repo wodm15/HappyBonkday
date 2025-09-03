@@ -24,7 +24,7 @@ public:
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
 	virtual void Destroyed() override;
 
-	virtual void GetHit_Implementation(const FVector& ImpactPoint) override;
+	virtual void GetHit_Implementation(const FVector& ImpactPoint, AActor* Hiiter) override;
 
 protected:
 	virtual void BeginPlay() override;
@@ -40,6 +40,7 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly)
 	EDeathPos DeathPos;
+
 
 private:
 
@@ -82,9 +83,6 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<class AWeapon> WeaponClass;
-
-	UPROPERTY()
-	AActor* CombatTarget;
 
 	UPROPERTY(EditAnywhere)
 	double CombatRadius = 500.f;

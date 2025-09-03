@@ -117,7 +117,7 @@ void AWeapon::ExecuteGetHit(FHitResult& BoxHit)
         {
             //HitInterface->GetHit(BoxHit.ImpactPoint);
             //BP , c++  both override
-            HitInterface->Execute_GetHit(BoxHit.GetActor() , BoxHit.ImpactPoint);
+            HitInterface->Execute_GetHit(BoxHit.GetActor() , BoxHit.ImpactPoint , GetOwner());
         }
 }
 

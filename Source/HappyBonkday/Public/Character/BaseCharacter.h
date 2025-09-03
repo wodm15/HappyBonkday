@@ -25,7 +25,7 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
-
+	virtual void GetHit_Implementation(const FVector& ImpactPoint, AActor* Hiiter) override;
 	UFUNCTION(BlueprintCallable)
 	void SetWeaponCollisionEnabled(ECollisionEnabled::Type CollisionEnabled);
 
@@ -46,15 +46,28 @@ protected:
 	int32 PlayRandomMontageSection(UAnimMontage* Montage , const TArray<FName>& SectionName);
 	virtual int32 PlayAttackMontage();
 	virtual int32 PlayDeathMontage();
+	void StopAttackMontage();
+
+	UFUNCTION(BlueprintCallable)
+	FVector GetTranslationWarpTarget();
+	UFUNCTION(BlueprintCallable)
+	FVector GetRotationWarpTarget();
 
 	UPROPERTY(VisibleAnywhere)
 	UAttributeComponent* Attributes;
+	UPROPERTY(BlueprintReadOnly , Category= Combat)
+	AActor* CombatTarget;
+	UPROPERTY(BlueprintReadOnly , Category= Combat)
+	float WarpTargetDistance = 75.f;
 
 	UPROPERTY(VisibleAnywhere , Category = Weapon)
 	AWeapon* EquippedWeapon;
 
+
+
+
 	//Animation Montage
-	UPROPERTY(EditDefaultsOnly , Category = Montages)
+	UPROPERTY(EditDefaultsOnly , Category = Combats)
 	UAnimMontage* DeathMontage;
 
 	UPROPERTY(EditAnywhere , Category = Combat)
@@ -66,15 +79,15 @@ protected:
 
 private:
 	//Sound
-	UPROPERTY(EditAnywhere , Category = Sounds)
+	UPROPERTY(EditAnywhere , Category = Combat)
 	USoundBase* HitSound;
 
 	//Effect
-	UPROPERTY(EditAnywhere , Category = VisibleEffect)
+	UPROPERTY(EditAnywhere , Category = Combat)
 	UParticleSystem* HitParticles;
 	//Animation Montage
-	UPROPERTY(EditDefaultsOnly , Category = Montages)
+	UPROPERTY(EditDefaultsOnly , Category = Combat)
 	UAnimMontage* AttackMontage;
-	UPROPERTY(EditDefaultsOnly , Category = Montages)
+	UPROPERTY(EditDefaultsOnly , Category = Combats)
 	UAnimMontage* HitReactMontage;
 };

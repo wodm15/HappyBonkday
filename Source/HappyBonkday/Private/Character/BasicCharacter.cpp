@@ -80,10 +80,12 @@ void ABasicCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 
 }
 
-void ABasicCharacter::GetHit_Implementation(const FVector& ImpactPoint)
+void ABasicCharacter::GetHit_Implementation(const FVector& ImpactPoint, AActor* Hiiter)
 {
-	PlayHitSound(ImpactPoint);
-    SpawnHitParticles(ImpactPoint);
+	Super::GetHit_Implementation(ImpactPoint , Hiiter);
+
+	SetWeaponCollisionEnabled(ECollisionEnabled::NoCollision);
+	ActionState = EActionState::EAS_HitReaction;
 }
 
 void ABasicCharacter::Move(const FInputActionValue& Value)
@@ -226,3 +228,9 @@ void ABasicCharacter::FinishEquipping()
 {
 	ActionState = EActionState::EAS_Unoccupied;
 }
+
+void ABasicCharacter::HitReactEnd()
+{
+	ActionState = EActionState::EAS_Unoccupied;
+}
+

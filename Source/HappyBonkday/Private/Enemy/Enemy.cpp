@@ -104,21 +104,25 @@ void AEnemy::AttackEnd()
 
 void AEnemy::PawnSeen(AActor* SeenPawn, FAIStimulus Stimulus)
 {
-    const bool bShouldChaseTarget = 
-    EnemyState != EEnemyState::EES_Dead &&
-    EnemyState != EEnemyState::EES_Chasing &&
-    EnemyState < EEnemyState::EES_Attacking &&
-    SeenPawn->ActorHasTag("Player") &&
-    Stimulus.WasSuccessfullySensed();
+    if (!SeenPawn || !Stimulus.WasSuccessfullySensed()) return;
 
-    if(bShouldChaseTarget)
+    if (EnemyState == EEnemyState::EES_Dead) return;
+
+    if (!SeenPawn->ActorHasTag("Player")) return;
+
+    CombatTarget = SeenPawn;
+    CleanPatrolTimer();
+
+    if (IsInsideAttackRadius())
     {
-        CombatTarget = SeenPawn;
-        CleanPatrolTimer();
-        ChaseTarget();
+        StartAttackTimer(); 
     }
-
+    else
+    {
+        ChaseTarget();     
+    }
 }
+
 
 
 
@@ -139,6 +143,7 @@ void AEnemy::Tick(float DeltaTime)
 
 void AEnemy::CheckCombatTarget()
 {
+
     if(IsOutsideCombatRadius())
     {
         ClearAttackTimer();
@@ -213,21 +218,16 @@ AActor* AEnemy::ChoosePatrolTarget()
 }
 
 
-void AEnemy::GetHit_Implementation(const FVector& ImpactPoint)
+void AEnemy::GetHit_Implementation(const FVector& ImpactPoint, AActor* Hitter)
 {
 
+    Super::GetHit_Implementation(ImpactPoint , Hitter);
     if (!IsDead()) ShowHealthBar();
-    if(IsAlive())
-    {
-        DirectionalHitReact(ImpactPoint);   
-    }
-    else
-    {
-        Die(ImpactPoint);
-    }
+    CleanPatrolTimer();
+    ClearAttackTimer();
 
-	PlayHitSound(ImpactPoint);
-    SpawnHitParticles(ImpactPoint);
+    SetWeaponCollisionEnabled(ECollisionEnabled::NoCollision);
+    StopAttackMontage();
 }
 
 
@@ -235,14 +235,13 @@ void AEnemy::GetHit_Implementation(const FVector& ImpactPoint)
 float AEnemy::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser)
 {
     HandleDamage(DamageAmount);
-    
+    CombatTarget = EventInstigator->GetPawn();
+   
     if (!Attributes->IsAlive())
     {
-        Die(FVector(0,0,0));
+        Die(FVector::ZeroVector);
+        return DamageAmount;
     }
-
-    CombatTarget = EventInstigator->GetPawn();
-
 	if (IsInsideAttackRadius())
 	{
 		EnemyState = EEnemyState::EES_Attacking;
@@ -302,15 +301,9 @@ void AEnemy::Die(const FVector& ImpactPoint)
 
     HideHealthBar();
     DisableCapsule();
-
-    // 죽으면 캐릭터 컨트롤러 뺏기(카메라 시점으로 이동하기 때문)
-    GetCharacterMovement()->DisableMovement();
-    GetCharacterMovement()->StopMovementImmediately();
-    if (Controller) Controller->UnPossess();
-    bUseControllerRotationYaw = false;
-    GetCharacterMovement()->bOrientRotationToMovement = false;
-    
     SetLifeSpan(DeathLifeSpan);
+    GetCharacterMovement()->bOrientRotationToMovement = false;
+    SetWeaponCollisionEnabled(ECollisionEnabled::NoCollision);
 
 }
 
@@ -401,6 +394,7 @@ bool AEnemy::IsAttacking()
 
 void AEnemy::StartAttackTimer()
 {
+    if(IsDead()) return;
     EnemyState = EEnemyState::EES_Attacking;
     const float AttackTime = FMath::RandRange(AttackMin, AttackMax);
     GetWorldTimerManager().SetTimer(AttackTimer, this , &AEnemy::Attack, AttackTime);
