@@ -58,7 +58,7 @@ protected:
 	UPROPERTY(BlueprintReadOnly , Category= Combat)
 	AActor* CombatTarget;
 	UPROPERTY(BlueprintReadOnly , Category= Combat)
-	float WarpTargetDistance = 75.f;
+	float WarpTargetDistance = 30.f;
 
 	UPROPERTY(VisibleAnywhere , Category = Weapon)
 	AWeapon* EquippedWeapon;

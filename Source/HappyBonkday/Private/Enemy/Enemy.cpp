@@ -99,6 +99,11 @@ void AEnemy::AttackEnd()
 {
     EnemyState = EEnemyState::EES_NoState;
     CheckCombatTarget();
+    
+    if (EquippedWeapon)
+    {
+        EquippedWeapon->ClearIgnoredActors();
+    }
 }
 
 

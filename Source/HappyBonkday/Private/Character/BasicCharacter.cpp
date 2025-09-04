@@ -15,6 +15,10 @@
 #include "Item.h"
 #include "Weapon/Weapon.h"
 
+#include "HUD/BasicHUD.h"
+#include "HUD/BasicOverlay.h"
+#include "Components/AttributeComponent.h"
+
 ABasicCharacter::ABasicCharacter()
 {
 	PrimaryActorTick.bCanEverTick = false;
@@ -50,19 +54,43 @@ void ABasicCharacter::BeginPlay()
 
 	if (APlayerController* PlayerController = Cast<APlayerController>(GetController()))
 	{
-		if (ULocalPlayer* LocalPlayer = PlayerController->GetLocalPlayer())
-		{
-			if (UEnhancedInputLocalPlayerSubsystem* Subsystem = LocalPlayer->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>())
-			{
-				Subsystem->AddMappingContext(SlashContext, 0);
-			}
-		}
+		InitializePlayerInput(PlayerController);
+		InitializeBasicOverlay(PlayerController);
 	}
 
 	Tags.Add(FName("Player"));
 
 	
 }
+
+
+void ABasicCharacter::InitializePlayerInput(APlayerController* PlayerController)
+{
+	if (ULocalPlayer* LocalPlayer = PlayerController->GetLocalPlayer())
+	{
+		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = LocalPlayer->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>())
+		{
+			Subsystem->AddMappingContext(SlashContext, 0);
+		}
+	}
+}
+
+void ABasicCharacter::InitializeBasicOverlay(APlayerController* PlayerController)
+{
+	ABasicHUD* BasicHUD = Cast<ABasicHUD>(PlayerController->GetHUD());
+	if(BasicHUD)
+	{
+		BasicOverlay = BasicHUD->GetBasicOverlay();
+		if(BasicOverlay && Attributes)
+		{
+			BasicOverlay->SetHealthProgressBar(Attributes->GetHealthPercent());
+			BasicOverlay->SetStaminaProgressBar(1.f);
+			BasicOverlay->SetGold(0);
+			BasicOverlay->SetSouls(0);
+		}
+	}
+}
+
 
 
 void ABasicCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -79,6 +107,15 @@ void ABasicCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 	}
 
 }
+
+
+float ABasicCharacter::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser)
+{
+	HandleDamage(DamageAmount);
+
+	return DamageAmount;
+}
+
 
 void ABasicCharacter::GetHit_Implementation(const FVector& ImpactPoint, AActor* Hiiter)
 {

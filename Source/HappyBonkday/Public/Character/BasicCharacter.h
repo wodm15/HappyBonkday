@@ -18,6 +18,7 @@ class UCameraComponent;
 class UAnimMontage;
 class AItem;
 class UAnimMontage;
+class UBasicOverlay;
 
 UCLASS()
 class HAPPYBONKDAY_API ABasicCharacter : public ABaseCharacter
@@ -28,10 +29,14 @@ public:
 
 	ABasicCharacter();
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
 	virtual void GetHit_Implementation(const FVector& ImpactPoint, AActor* Hiiter) override;
 	
 protected:
 	virtual void BeginPlay() override;
+	
+	void InitializePlayerInput(APlayerController* PlayerController);
+	void InitializeBasicOverlay(APlayerController* PlayerController);
 
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
@@ -47,6 +52,8 @@ protected:
 	bool CanArm();
 	void DisArm();
 	void Arm();
+
+
 
 	UPROPERTY(EditAnywhere , BlueprintReadOnly , Category = Input)
 	UInputMappingContext* SlashContext;
@@ -92,6 +99,9 @@ private:
 	//Animation Montage
 	UPROPERTY(EditDefaultsOnly , Category = Montages)
 	UAnimMontage* EquipMontage;
+
+	UPROPERTY()
+	UBasicOverlay* BasicOverlay;
 
 public:
 	FORCEINLINE void SetOverlappingItem(AItem* Item) { OverlappingItem = Item; }

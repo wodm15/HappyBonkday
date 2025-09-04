@@ -60,4 +60,5 @@ private:
 
 public:
 	FORCEINLINE UBoxComponent* GetWeaponBox() const { return WeaponBox;}
+	FORCEINLINE void ClearIgnoredActors() { IgnoreActors.Empty(); }
 };
