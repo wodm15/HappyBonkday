@@ -9,9 +9,7 @@
 #include "AIController.h"
 #include "Weapon/Weapon.h"
 #include "Navigation/PathFollowingComponent.h"
-#include "Perception/AIPerceptionComponent.h"
-#include "Perception/AISense_Sight.h"
-#include "Perception/AISenseConfig_Sight.h"
+#include "Perception/PawnSensingComponent.h"
 
 AEnemy::AEnemy()
 {
@@ -31,23 +29,16 @@ AEnemy::AEnemy()
     bUseControllerRotationRoll = false;
     bUseControllerRotationYaw = false;
 
-    AIPerception = CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("AIPerception"));
-    UAISenseConfig_Sight* SightConfig = CreateDefaultSubobject<UAISenseConfig_Sight>(TEXT("SightConfig"));
-    SightConfig->SightRadius = 1500.f;
-    SightConfig->LoseSightRadius = 1800.f;
-    SightConfig->PeripheralVisionAngleDegrees = 120.f;
-    SightConfig->SetMaxAge(5.f);
-    SightConfig->DetectionByAffiliation.bDetectEnemies = true;
-    SightConfig->DetectionByAffiliation.bDetectNeutrals = true;
-    SightConfig->DetectionByAffiliation.bDetectFriendlies = true;
-    AIPerception->ConfigureSense(*SightConfig);
-    AIPerception->SetDominantSense(SightConfig->GetSenseImplementation());
+
+	PawnSensing = CreateDefaultSubobject<UPawnSensingComponent>(TEXT("PawnSensing"));
+	PawnSensing->SightRadius = 4000.f;
+	PawnSensing->SetPeripheralVisionAngle(45.f);
 }
 
 void AEnemy::BeginPlay()
 {
 	Super::BeginPlay();
-    if(AIPerception) AIPerception->OnTargetPerceptionUpdated.AddDynamic(this, &AEnemy::PawnSeen);
+    if (PawnSensing) PawnSensing->OnSeePawn.AddDynamic(this, &AEnemy::PawnSeen);
     InitializeEnemy();
 
     Tags.Add(FName("Enemy"));
@@ -74,8 +65,9 @@ void AEnemy::SpawnDefaultWeapon()
 
 void AEnemy::Attack()
 {
-    EnemyState = EEnemyState::EES_Engaged;
     Super::Attack();
+    if(CombatTarget == nullptr) return;
+    EnemyState = EEnemyState::EES_Engaged;
     PlayAttackMontage();
 }
 
@@ -107,25 +99,20 @@ void AEnemy::AttackEnd()
 }
 
 
-void AEnemy::PawnSeen(AActor* SeenPawn, FAIStimulus Stimulus)
+void AEnemy::PawnSeen(APawn* SeenPawn)
 {
-    if (!SeenPawn || !Stimulus.WasSuccessfullySensed()) return;
+	const bool bShouldChaseTarget =
+		EnemyState != EEnemyState::EES_Dead &&
+		EnemyState != EEnemyState::EES_Chasing &&
+		EnemyState < EEnemyState::EES_Attacking &&
+		SeenPawn->ActorHasTag(FName("Player"));
 
-    if (EnemyState == EEnemyState::EES_Dead) return;
-
-    if (!SeenPawn->ActorHasTag("Player")) return;
-
-    CombatTarget = SeenPawn;
-    CleanPatrolTimer();
-
-    if (IsInsideAttackRadius())
-    {
-        StartAttackTimer(); 
-    }
-    else
-    {
-        ChaseTarget();     
-    }
+	if (bShouldChaseTarget)
+	{
+		CombatTarget = SeenPawn;
+		CleanPatrolTimer();
+		ChaseTarget();
+	}
 }
 
 
@@ -239,7 +226,8 @@ void AEnemy::GetHit_Implementation(const FVector& ImpactPoint, AActor* Hitter)
 
 float AEnemy::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser)
 {
-    HandleDamage(DamageAmount);
+    Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator , DamageCauser );
+
     CombatTarget = EventInstigator->GetPawn();
    
     if (!Attributes->IsAlive())
@@ -247,13 +235,13 @@ float AEnemy::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEv
         Die(FVector::ZeroVector);
         return DamageAmount;
     }
-	if (IsInsideAttackRadius())
-	{
-		EnemyState = EEnemyState::EES_Attacking;
-	}
-	else if (IsOutsideAttackRadius())
+	if (IsOutsideAttackRadius())
 	{
 		ChaseTarget();
+	}
+	else if (IsInsideAttackRadius())
+	{
+        EnemyState = EEnemyState::EES_Attacking;
 	}
 
     return DamageAmount;
@@ -261,49 +249,11 @@ float AEnemy::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEv
 
 void AEnemy::Die(const FVector& ImpactPoint)
 {
+    Super::Die(ImpactPoint);
+    
     EnemyState = EEnemyState::EES_Dead;
     ClearAttackTimer();
-
-    const FVector Forward = GetActorForwardVector();
-    const FVector ToHit = (ImpactPoint - GetActorLocation()).GetSafeNormal();
-
-    float CosTheta = FVector::DotProduct(Forward, ToHit);
-    float Theta = FMath::Acos(CosTheta);
-    Theta = FMath::RadiansToDegrees(Theta);
-
-    FVector Cross = FVector::CrossProduct(Forward, ToHit);
-    if (Cross.Z < 0)
-    {
-        Theta *= -1.f; // 왼쪽이면 음수(언리얼은 왼손 법칙)
-    }
-
-    FName SelectionName = FName("DeathBack");
-    DeathPos = EDeathPos::EDP_DeathBack;
-
-    if (Theta >= -45.f && Theta < 45.f)
-    {
-        SelectionName = FName("DeathFront");
-        DeathPos = EDeathPos::EDP_DeathFront;
-    }
-    else if (Theta >= -135.f && Theta < 45.f)
-    {
-        SelectionName = FName("DeathLeft");
-        DeathPos = EDeathPos::EDP_DeathLeft;
-    }
-
-    else if (Theta >= 45.f && Theta < 135.f)
-    {
-        SelectionName = FName("DeathRight");
-        DeathPos = EDeathPos::EDP_DeathRight;
-    }
-        
-	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-	if(AnimInstance && DeathMontage)
-	{
-        AnimInstance->Montage_Play(DeathMontage);
-		AnimInstance->Montage_JumpToSection(SelectionName, DeathMontage);
-	}
-
+    
     HideHealthBar();
     DisableCapsule();
     SetLifeSpan(DeathLifeSpan);

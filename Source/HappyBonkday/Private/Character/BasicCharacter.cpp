@@ -38,10 +38,7 @@ ABasicCharacter::ABasicCharacter()
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArm->SetupAttachment(GetRootComponent());
 	SpringArm->TargetArmLength = 300.f;
-	SpringArm->SetRelativeLocation(FVector(0.f, 0.f, 50.f));
-	SpringArm->SetRelativeRotation(FRotator(-10.f, 0.f, 0.f));
 
-	
 	ViewCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("ViewCamera"));
 	ViewCamera->SetupAttachment(SpringArm);
 
@@ -61,6 +58,19 @@ void ABasicCharacter::BeginPlay()
 	Tags.Add(FName("Player"));
 
 	
+}
+
+
+void ABasicCharacter::Die(const FVector& ImpactPoint)
+{
+	Super::Die(ImpactPoint);
+
+	ActionState = EActionState::EAS_Dead;
+
+	DisableCapsule();
+	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	GetCharacterMovement()->bOrientRotationToMovement = false;
+    SetWeaponCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
 
@@ -92,7 +102,6 @@ void ABasicCharacter::InitializeBasicOverlay(APlayerController* PlayerController
 }
 
 
-
 void ABasicCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
@@ -107,14 +116,30 @@ void ABasicCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 	}
 
 }
+void ABasicCharacter::Jump()
+{
+	if(!IsOccupied())
+	{
+		Super::Jump();
+	}
+	
+}
 
+bool ABasicCharacter::IsOccupied()
+{
+	return ActionState == EActionState::EAS_Unoccupied;
+}
 
 float ABasicCharacter::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser)
 {
-	HandleDamage(DamageAmount);
+	Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator , DamageCauser );
+
+	SetHUDHealth();
 
 	return DamageAmount;
 }
+
+
 
 
 void ABasicCharacter::GetHit_Implementation(const FVector& ImpactPoint, AActor* Hiiter)
@@ -122,12 +147,18 @@ void ABasicCharacter::GetHit_Implementation(const FVector& ImpactPoint, AActor* 
 	Super::GetHit_Implementation(ImpactPoint , Hiiter);
 
 	SetWeaponCollisionEnabled(ECollisionEnabled::NoCollision);
-	ActionState = EActionState::EAS_HitReaction;
+	if (Attributes && Attributes->GetHealthPercent() > 0.f)
+	{
+		ActionState = EActionState::EAS_HitReaction;
+	}
+
+	
+	
 }
 
 void ABasicCharacter::Move(const FInputActionValue& Value)
 {
-	if(ActionState != EActionState::EAS_Unoccupied) return;
+	if(!IsOccupied()) return;
 
 	const FVector2D MovementVector = Value.Get<FVector2D>();
 
@@ -271,3 +302,10 @@ void ABasicCharacter::HitReactEnd()
 	ActionState = EActionState::EAS_Unoccupied;
 }
 
+void ABasicCharacter::SetHUDHealth()
+{
+	if(BasicOverlay)
+	{
+		BasicOverlay->SetHealthProgressBar(Attributes->GetHealthPercent());
+	}
+}

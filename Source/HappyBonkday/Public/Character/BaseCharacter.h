@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Interfaces/HitInterface.h"
-
+#include "CharacterTypes.h"
 #include "BaseCharacter.generated.h"
 
 class UAttributeComponent;
@@ -25,6 +25,7 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
 	virtual void GetHit_Implementation(const FVector& ImpactPoint, AActor* Hiiter) override;
 	UFUNCTION(BlueprintCallable)
 	void SetWeaponCollisionEnabled(ECollisionEnabled::Type CollisionEnabled);
@@ -64,7 +65,8 @@ protected:
 	AWeapon* EquippedWeapon;
 
 
-
+	UPROPERTY(BlueprintReadOnly)
+	EDeathPos DeathPos;
 
 	//Animation Montage
 	UPROPERTY(EditDefaultsOnly , Category = Combats)
@@ -90,4 +92,7 @@ private:
 	UAnimMontage* AttackMontage;
 	UPROPERTY(EditDefaultsOnly , Category = Combats)
 	UAnimMontage* HitReactMontage;
+
+public:
+	FORCEINLINE EDeathPos GetDeathPos() const { return DeathPos; }
 };

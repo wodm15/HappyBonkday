@@ -10,7 +10,7 @@
 
 class UHealthBarComponent;
 class AAIController;
-class UAIPerceptionComponent;
+class UPawnSensingComponent;
 
 UCLASS()
 class HAPPYBONKDAY_API AEnemy : public ABaseCharacter 
@@ -38,8 +38,6 @@ protected:
 	UPROPERTY(BlueprintReadOnly)
 	EEnemyState EnemyState = EEnemyState::EES_Patrolling;
 
-	UPROPERTY(BlueprintReadOnly)
-	EDeathPos DeathPos;
 
 
 private:
@@ -68,18 +66,17 @@ private:
 	void MoveToTarget(AActor* Target);
 	void SpawnDefaultWeapon();
 	
+	UFUNCTION()
+	void PawnSeen(APawn* SeenPawn);
 
 	UPROPERTY(EditAnywhere , Category = Combat)
 	float DeathLifeSpan = 10.f;
 
-	UFUNCTION()
-	void PawnSeen(AActor* SeenPawn, FAIStimulus Stimulus);
+	UPROPERTY(VisibleAnywhere)
+	UPawnSensingComponent* PawnSensing;
 
 	UPROPERTY(VisibleAnywhere)
 	UHealthBarComponent* HealthBarWidget;
-
-	UPROPERTY(VisibleAnywhere)
-	UAIPerceptionComponent* AIPerception;
 
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<class AWeapon> WeaponClass;
@@ -123,4 +120,6 @@ private:
 	float PatrollingSpeed = 125.f;
 	UPROPERTY(EditAnywhere , Category="Combat")
 	float ChasingSpeed = 300.f;
+
+
 };

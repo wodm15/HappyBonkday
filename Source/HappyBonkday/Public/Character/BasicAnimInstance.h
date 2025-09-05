@@ -28,6 +28,10 @@ public:
 	float GroundSpeed;
 	UPROPERTY(BlueprintReadOnly , category = Movement)
 	bool IsFalling;
-	UPROPERTY(BlueprintReadOnly , category = "Movement | Character State")
+	UPROPERTY(BlueprintReadOnly , category = Movement)
 	ECharacterState CharacterState;
+	UPROPERTY(BlueprintReadOnly , category = Movement)
+	EActionState ActionState;
+	UPROPERTY(BlueprintReadOnly , category = Movement)
+	EDeathPos DeathPos;
 };

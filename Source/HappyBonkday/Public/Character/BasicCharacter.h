@@ -29,12 +29,14 @@ public:
 
 	ABasicCharacter();
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	virtual void Jump() override;
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
 	virtual void GetHit_Implementation(const FVector& ImpactPoint, AActor* Hiiter) override;
 	
 protected:
 	virtual void BeginPlay() override;
-	
+	virtual void Die(const FVector& ImpactPoint) override;
+
 	void InitializePlayerInput(APlayerController* PlayerController);
 	void InitializeBasicOverlay(APlayerController* PlayerController);
 
@@ -79,8 +81,11 @@ protected:
 	UFUNCTION(BlueprintCallable)
 	void HitReactEnd();
 
+
+
 private:
 	ECharacterState CharacterState = ECharacterState::ECS_Unequipped;
+	bool IsOccupied();
 
 	UPROPERTY(BlueprintReadWrite , meta = (AllowPrivateAccess = "true"))
 	EActionState ActionState = EActionState::EAS_Unoccupied;
@@ -103,7 +108,9 @@ private:
 	UPROPERTY()
 	UBasicOverlay* BasicOverlay;
 
+	void SetHUDHealth();
 public:
 	FORCEINLINE void SetOverlappingItem(AItem* Item) { OverlappingItem = Item; }
 	FORCEINLINE ECharacterState GetCharacterState() const {return CharacterState; }
+	FORCEINLINE EActionState GetActionState() const { return ActionState; }
 };

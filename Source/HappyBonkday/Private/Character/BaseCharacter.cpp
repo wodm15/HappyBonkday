@@ -23,6 +23,20 @@ void ABaseCharacter::BeginPlay()
 	
 }
 
+
+float ABaseCharacter::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser)
+{
+    HandleDamage(DamageAmount);
+
+    if (!IsAlive())
+    {
+        Die(FVector::ZeroVector); 
+    }
+
+    return DamageAmount;
+}
+
+
 void ABaseCharacter::GetHit_Implementation(const FVector& ImpactPoint, AActor* Hitter)
 {
     if(IsAlive() && Hitter)
@@ -41,7 +55,10 @@ void ABaseCharacter::GetHit_Implementation(const FVector& ImpactPoint, AActor* H
 
 void ABaseCharacter::Attack()
 {
-
+    if(CombatTarget && CombatTarget->ActorHasTag(FName("Dead")))
+    {
+        CombatTarget = nullptr;
+    }
 }
 
 void ABaseCharacter::AttackEnd()
@@ -63,7 +80,47 @@ bool ABaseCharacter::IsAlive()
 
 void ABaseCharacter::Die(const FVector& ImpactPoint)
 {
+    Tags.Add(FName("Dead"));
 
+	const FVector Forward = GetActorForwardVector();
+    const FVector ToHit = (ImpactPoint - GetActorLocation()).GetSafeNormal();
+
+    float CosTheta = FVector::DotProduct(Forward, ToHit);
+    float Theta = FMath::Acos(CosTheta);
+    Theta = FMath::RadiansToDegrees(Theta);
+
+    FVector Cross = FVector::CrossProduct(Forward, ToHit);
+    if (Cross.Z < 0)
+    {
+        Theta *= -1.f; // 왼쪽이면 음수(언리얼은 왼손 법칙)
+    }
+
+    FName SelectionName = FName("DeathBack");
+    DeathPos = EDeathPos::EDP_DeathBack;
+
+    if (Theta >= -45.f && Theta < 45.f)
+    {
+        SelectionName = FName("DeathFront");
+        DeathPos = EDeathPos::EDP_DeathFront;
+    }
+    else if (Theta >= -135.f && Theta < 45.f)
+    {
+        SelectionName = FName("DeathLeft");
+        DeathPos = EDeathPos::EDP_DeathLeft;
+    }
+
+    else if (Theta >= 45.f && Theta < 135.f)
+    {
+        SelectionName = FName("DeathRight");
+        DeathPos = EDeathPos::EDP_DeathRight;
+    }
+        
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if(AnimInstance && DeathMontage)
+	{
+        AnimInstance->Montage_Play(DeathMontage);
+		AnimInstance->Montage_JumpToSection(SelectionName, DeathMontage);
+	}
 }
 
 
