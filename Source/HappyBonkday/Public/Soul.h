@@ -4,13 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "Item.h"
-#include "Treasure.generated.h"
+#include "Soul.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class HAPPYBONKDAY_API ATreasure : public AItem
+class HAPPYBONKDAY_API ASoul : public AItem
 {
 	GENERATED_BODY()
 	
@@ -21,6 +21,4 @@ protected:
 
 private:
 
-	UPROPERTY(EditAnywhere , Category = "Treasure Properties");
-	int32 Gold;
 };

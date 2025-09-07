@@ -4,8 +4,11 @@
 #include "Item.h"
 #include "Components/SphereComponent.h"
 #include "Components/StaticMeshComponent.h"
-#include "Character/BasicCharacter.h"
+#include "Interfaces/PickupInterface.h"
 #include "NiagaraComponent.h"
+#include "NiagaraFunctionLibrary.h"
+#include "Kismet/GameplayStatics.h"
+
 // Sets default values
 AItem::AItem()
 {
@@ -19,8 +22,8 @@ AItem::AItem()
 	Sphere = CreateDefaultSubobject<USphereComponent>(TEXT("Sphere"));
 	Sphere->SetupAttachment(RootComponent);
 
-	EmbersEffect = CreateDefaultSubobject<UNiagaraComponent>(TEXT("Embers"));
-	EmbersEffect->SetupAttachment(RootComponent);
+	ItemEffect = CreateDefaultSubobject<UNiagaraComponent>(TEXT("Embers"));
+	ItemEffect->SetupAttachment(RootComponent);
 
 }
 
@@ -45,19 +48,44 @@ void AItem::Tick(float DeltaTime)
 void AItem::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	ABasicCharacter* BasicCharacter = Cast<ABasicCharacter>(OtherActor);
-	if(BasicCharacter)
+	IPickupInterface* HitInterface = Cast<IPickupInterface>(OtherActor);
+	if(HitInterface)
 	{
-		BasicCharacter->SetOverlappingItem(this);
+		HitInterface->SetOverlappingItem(this);
 	}
 
 }
 
 void AItem::OnSphereOverLapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	ABasicCharacter* BasicCharacter = Cast<ABasicCharacter>(OtherActor);
-	if(BasicCharacter)
+	IPickupInterface* HitInterface = Cast<IPickupInterface>(OtherActor);
+	if(HitInterface)
 	{
-		BasicCharacter->SetOverlappingItem(nullptr);
+		HitInterface->SetOverlappingItem(nullptr);
+	}
+}
+
+void AItem::SpawnPickupSystem()
+{
+    if(PickupEffect)
+    {
+        UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+            this,
+            PickupEffect,
+            GetActorLocation()
+        );
+    }
+}
+
+
+void AItem::SpawnPickupSound()
+{
+	if(PickupSound)
+	{
+		UGameplayStatics::SpawnSoundAtLocation(
+			this,
+			PickupSound,
+			GetActorLocation()
+		);
 	}
 }

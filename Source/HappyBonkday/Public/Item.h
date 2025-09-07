@@ -24,11 +24,17 @@ public:
 	AItem();
 	virtual void Tick(float DeltaTime) override;
 
+	virtual void SpawnPickupSystem();
+	virtual void SpawnPickupSound();
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Item", meta=(AllowPrivateAccess="true"))
 	UStaticMeshComponent* ItemMesh;
 
 	UPROPERTY(EditAnywhere) 
-	class UNiagaraComponent* EmbersEffect;
+	class UNiagaraComponent* ItemEffect;
+
+	UPROPERTY(EditAnywhere) 
+	USoundBase* PickupSound;
 
 	EItemState ItemState = EItemState::EIS_Hovering;
 
@@ -45,4 +51,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Item", meta=(AllowPrivateAccess="true"))
 	USphereComponent* Sphere;
 
+private:
+	UPROPERTY(EditAnywhere)
+	class UNiagaraSystem* PickupEffect;
 };

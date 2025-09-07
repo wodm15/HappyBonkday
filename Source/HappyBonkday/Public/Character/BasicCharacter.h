@@ -6,6 +6,7 @@
 #include "BaseCharacter.h"
 #include "InputActionValue.h"
 #include "CharacterTypes.h"
+#include "Interfaces/PickupInterface.h"
 
 #include "BasicCharacter.generated.h"
 
@@ -17,11 +18,12 @@ class UCameraComponent;
 
 class UAnimMontage;
 class AItem;
+class ASoul;
 class UAnimMontage;
 class UBasicOverlay;
 
 UCLASS()
-class HAPPYBONKDAY_API ABasicCharacter : public ABaseCharacter
+class HAPPYBONKDAY_API ABasicCharacter : public ABaseCharacter, public IPickupInterface
 {
 	GENERATED_BODY()
 
@@ -32,6 +34,8 @@ public:
 	virtual void Jump() override;
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
 	virtual void GetHit_Implementation(const FVector& ImpactPoint, AActor* Hiiter) override;
+	virtual void SetOverlappingItem(class AItem* Item) override;
+	virtual void AddSouls(class ASoul* Soul) override;
 	
 protected:
 	virtual void BeginPlay() override;
@@ -110,7 +114,6 @@ private:
 
 	void SetHUDHealth();
 public:
-	FORCEINLINE void SetOverlappingItem(AItem* Item) { OverlappingItem = Item; }
 	FORCEINLINE ECharacterState GetCharacterState() const {return CharacterState; }
 	FORCEINLINE EActionState GetActionState() const { return ActionState; }
 };

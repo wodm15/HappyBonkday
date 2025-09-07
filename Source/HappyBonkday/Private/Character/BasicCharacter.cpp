@@ -152,9 +152,18 @@ void ABasicCharacter::GetHit_Implementation(const FVector& ImpactPoint, AActor* 
 		ActionState = EActionState::EAS_HitReaction;
 	}
 
-	
-	
 }
+
+void ABasicCharacter::SetOverlappingItem(class AItem* Item)
+{
+	OverlappingItem = Item;
+}
+
+void ABasicCharacter::AddSouls(class ASoul* Soul)
+{
+	UE_LOG(LogTemp, Display, TEXT("AddSouls"));
+}
+
 
 void ABasicCharacter::Move(const FInputActionValue& Value)
 {
