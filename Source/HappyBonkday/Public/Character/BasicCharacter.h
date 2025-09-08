@@ -19,6 +19,7 @@ class UCameraComponent;
 class UAnimMontage;
 class AItem;
 class ASoul;
+class ATreasure;
 class UAnimMontage;
 class UBasicOverlay;
 
@@ -30,12 +31,14 @@ class HAPPYBONKDAY_API ABasicCharacter : public ABaseCharacter, public IPickupIn
 public:
 
 	ABasicCharacter();
+	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	virtual void Jump() override;
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
 	virtual void GetHit_Implementation(const FVector& ImpactPoint, AActor* Hiiter) override;
 	virtual void SetOverlappingItem(class AItem* Item) override;
 	virtual void AddSouls(class ASoul* Soul) override;
+	virtual void AddGold(class ATreasure* Treasure) override;
 	
 protected:
 	virtual void BeginPlay() override;
@@ -47,18 +50,20 @@ protected:
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
 	void EKeyPressed(const FInputActionValue& Value);
+	void Dodge(const FInputActionValue& Value);
 
 	virtual void Attack() override;
 	virtual void AttackEnd() override;
+	virtual void DodgeEnd() override;
 	virtual bool CanAttack() override;
 
 	void EquipWeapon(AWeapon* Weapon);
 	void PlayEquipMontage(FName SectionName);
+	bool HasEnoughStamina();
 	bool CanDisarm();
 	bool CanArm();
 	void DisArm();
 	void Arm();
-
 
 
 	UPROPERTY(EditAnywhere , BlueprintReadOnly , Category = Input)
@@ -73,6 +78,8 @@ protected:
 	UInputAction* EKeyPressedAction;
 	UPROPERTY(EditAnywhere , BlueprintReadOnly , Category = Input)
 	UInputAction* AttackAction;
+	UPROPERTY(EditAnywhere , BlueprintReadOnly , Category = Input)
+	UInputAction* DodgeAction;
 
 
 

@@ -10,6 +10,7 @@
 #include "Weapon/Weapon.h"
 #include "Navigation/PathFollowingComponent.h"
 #include "Perception/PawnSensingComponent.h"
+#include "Soul.h"
 
 AEnemy::AEnemy()
 {
@@ -259,9 +260,24 @@ void AEnemy::Die(const FVector& ImpactPoint)
     SetLifeSpan(DeathLifeSpan);
     GetCharacterMovement()->bOrientRotationToMovement = false;
     SetWeaponCollisionEnabled(ECollisionEnabled::NoCollision);
-
+    SpawnSoul();
 }
 
+
+void AEnemy::SpawnSoul()
+{
+    UWorld* World = GetWorld();
+    if(World && SoulClass && Attributes)
+    {
+        const FVector SpawnLocation = GetActorLocation() + FVector(0.f , 0.f , 50.f);
+        ASoul* SpawnSoul = World->SpawnActor<ASoul>(SoulClass , SpawnLocation , GetActorRotation());
+        if(SpawnSoul)
+        {
+            SpawnSoul->SetSouls(Attributes->GetSouls());
+        }
+            
+    }
+}
 
 bool AEnemy::InTargetRange(AActor* Target , double Radius)
 {

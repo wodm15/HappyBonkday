@@ -18,10 +18,13 @@
 #include "HUD/BasicHUD.h"
 #include "HUD/BasicOverlay.h"
 #include "Components/AttributeComponent.h"
+#include "Soul.h"
+#include "Treasure.h"
 
 ABasicCharacter::ABasicCharacter()
 {
-	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bCanEverTick = true;
+
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationRoll = false;
 	bUseControllerRotationYaw = false;
@@ -102,6 +105,15 @@ void ABasicCharacter::InitializeBasicOverlay(APlayerController* PlayerController
 }
 
 
+void ABasicCharacter::Tick(float DeltaTime)
+{
+	if(Attributes && BasicOverlay)
+	{
+		Attributes->RegenStamina(DeltaTime);
+		BasicOverlay->SetStaminaProgressBar(Attributes->GetStaminaPercent());
+	}
+}
+
 void ABasicCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
@@ -113,21 +125,21 @@ void ABasicCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 		EnhancedInputComponent->BindAction(JumpAction , ETriggerEvent::Triggered , this , &ABasicCharacter::Jump);
 		EnhancedInputComponent->BindAction(EKeyPressedAction , ETriggerEvent::Triggered , this , &ABasicCharacter::EKeyPressed);
 		EnhancedInputComponent->BindAction(AttackAction , ETriggerEvent::Triggered , this , &ABasicCharacter::Attack);
+		EnhancedInputComponent->BindAction(DodgeAction , ETriggerEvent::Triggered , this , &ABasicCharacter::Dodge);
 	}
 
 }
 void ABasicCharacter::Jump()
 {
-	if(!IsOccupied())
-	{
-		Super::Jump();
-	}
+	if(IsOccupied()) return;
+		
+	Super::Jump();
 	
 }
 
 bool ABasicCharacter::IsOccupied()
 {
-	return ActionState == EActionState::EAS_Unoccupied;
+	return ActionState != EActionState::EAS_Unoccupied;
 }
 
 float ABasicCharacter::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser)
@@ -161,13 +173,28 @@ void ABasicCharacter::SetOverlappingItem(class AItem* Item)
 
 void ABasicCharacter::AddSouls(class ASoul* Soul)
 {
-	UE_LOG(LogTemp, Display, TEXT("AddSouls"));
+	if(Attributes && BasicOverlay)
+	{
+		Attributes->AddSouls(Soul->GetSouls());
+		BasicOverlay->SetSouls(Attributes->GetSouls());
+	}
 }
+
+
+void ABasicCharacter::AddGold(class ATreasure* Treasure)
+{
+	if(Attributes && BasicOverlay)
+	{
+		Attributes->AddGold(Treasure->GetGold());
+		BasicOverlay->SetGold(Attributes->GetGold());
+	}
+}
+
 
 
 void ABasicCharacter::Move(const FInputActionValue& Value)
 {
-	if(!IsOccupied()) return;
+	if(IsOccupied()) return;
 
 	const FVector2D MovementVector = Value.Get<FVector2D>();
 
@@ -210,6 +237,27 @@ void ABasicCharacter::EKeyPressed(const FInputActionValue& Value)
 			}
 		}
 
+}
+
+
+void ABasicCharacter::Dodge(const FInputActionValue& Value)
+{	
+	if(IsOccupied() || !HasEnoughStamina()) return;
+	
+
+	PlayDodgeMontage();
+	ActionState = EActionState::EAS_Dodge;
+	if(Attributes && BasicOverlay)
+	{
+		Attributes->UseStamina(Attributes->GetDodgeCost());
+		BasicOverlay->SetStaminaProgressBar(Attributes->GetStaminaPercent());
+	}
+
+}
+
+bool ABasicCharacter::HasEnoughStamina()
+{
+	return Attributes && Attributes->GetStamina() > Attributes->GetDodgeCost();
 }
 
 bool ABasicCharacter::CanDisarm()
@@ -297,6 +345,11 @@ void ABasicCharacter::PlayEquipMontage(FName SectionName)
 
 
 void ABasicCharacter::AttackEnd()
+{
+	ActionState =  EActionState::EAS_Unoccupied;
+}
+
+void ABasicCharacter::DodgeEnd()
 {
 	ActionState =  EActionState::EAS_Unoccupied;
 }

@@ -33,6 +33,8 @@ protected:
 	virtual void Attack();
 	UFUNCTION(BlueprintCallable)
 	virtual void AttackEnd();
+	UFUNCTION(BlueprintCallable)
+	virtual void DodgeEnd();
 	virtual bool CanAttack();
 	bool IsAlive();
 	virtual void Die(const FVector& ImpactPoint);
@@ -47,6 +49,7 @@ protected:
 	int32 PlayRandomMontageSection(UAnimMontage* Montage , const TArray<FName>& SectionName);
 	virtual int32 PlayAttackMontage();
 	virtual int32 PlayDeathMontage();
+	virtual void PlayDodgeMontage();
 	void StopAttackMontage();
 
 	UFUNCTION(BlueprintCallable)
@@ -71,6 +74,9 @@ protected:
 	//Animation Montage
 	UPROPERTY(EditDefaultsOnly , Category = Combats)
 	UAnimMontage* DeathMontage;
+
+	UPROPERTY(EditDefaultsOnly , Category = Combats)
+	UAnimMontage* DodgeMontage;
 
 	UPROPERTY(EditAnywhere , Category = Combat)
 	TArray<FName> AttackMontageSections;

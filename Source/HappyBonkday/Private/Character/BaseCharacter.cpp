@@ -66,6 +66,11 @@ void ABaseCharacter::AttackEnd()
 
 }
 
+void ABaseCharacter::DodgeEnd()
+{
+
+}
+
 bool ABaseCharacter::CanAttack()
 {
 	return true;
@@ -225,6 +230,11 @@ int32 ABaseCharacter::PlayAttackMontage()
 int32 ABaseCharacter::PlayDeathMontage()
 {
     return PlayRandomMontageSection(DeathMontage , DeathMontageSections);
+}
+
+void ABaseCharacter::PlayDodgeMontage()
+{
+    PlayMontageSection(DodgeMontage , FName("Dodge1"));
 }
 
 
