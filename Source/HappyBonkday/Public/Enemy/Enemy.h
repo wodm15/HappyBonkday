@@ -82,10 +82,12 @@ private:
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<class AWeapon> WeaponClass;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere , Category="Combat")
 	double CombatRadius = 500.f;
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere , Category="Combat")
 	double AttackRadius = 150.f;
+	UPROPERTY(EditAnywhere , Category="Combat")
+	double AcceptanceRadius = 50.f;
 
 	//navigation
 
