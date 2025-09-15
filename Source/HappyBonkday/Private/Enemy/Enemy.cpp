@@ -254,9 +254,9 @@ float AEnemy::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEv
     return DamageAmount;
 }
 
-void AEnemy::Die(const FVector& ImpactPoint)
+void AEnemy::Die_Implementation(const FVector& ImpactPoint)
 {
-    Super::Die(ImpactPoint);
+    Super::Die_Implementation(ImpactPoint);
     
     EnemyState = EEnemyState::EES_Dead;
     ClearAttackTimer();
@@ -275,11 +275,12 @@ void AEnemy::SpawnSoul()
     UWorld* World = GetWorld();
     if(World && SoulClass && Attributes)
     {
-        const FVector SpawnLocation = GetActorLocation() + FVector(0.f , 0.f , 50.f);
+        const FVector SpawnLocation = GetActorLocation() + FVector(0.f , 0.f , 120.f);
         ASoul* SpawnSoul = World->SpawnActor<ASoul>(SoulClass , SpawnLocation , GetActorRotation());
         if(SpawnSoul)
         {
             SpawnSoul->SetSouls(Attributes->GetSouls());
+            SpawnSoul->SetOwner(this);
         }
             
     }

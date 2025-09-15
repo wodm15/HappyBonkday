@@ -42,7 +42,7 @@ public:
 	
 protected:
 	virtual void BeginPlay() override;
-	virtual void Die(const FVector& ImpactPoint) override;
+	virtual void Die_Implementation(const FVector& ImpactPoint) override;
 
 	void InitializePlayerInput(APlayerController* PlayerController);
 	void InitializeBasicOverlay(APlayerController* PlayerController);

@@ -83,7 +83,7 @@ bool ABaseCharacter::IsAlive()
 }
 
 
-void ABaseCharacter::Die(const FVector& ImpactPoint)
+void ABaseCharacter::Die_Implementation(const FVector& ImpactPoint)
 {
     Tags.Add(FName("Dead"));
 

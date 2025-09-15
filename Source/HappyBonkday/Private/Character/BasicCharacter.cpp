@@ -64,9 +64,9 @@ void ABasicCharacter::BeginPlay()
 }
 
 
-void ABasicCharacter::Die(const FVector& ImpactPoint)
+void ABasicCharacter::Die_Implementation(const FVector& ImpactPoint)
 {
-	Super::Die(ImpactPoint);
+	Super::Die_Implementation(ImpactPoint);
 
 	ActionState = EActionState::EAS_Dead;
 
@@ -223,6 +223,10 @@ void ABasicCharacter::EKeyPressed(const FInputActionValue& Value)
 	AWeapon* OverlappingWeapon = Cast<AWeapon>(OverlappingItem);
 	if(OverlappingWeapon)
 		{
+			if (EquippedWeapon)
+			{
+				EquippedWeapon->Destroy();
+			}
 			EquipWeapon(OverlappingWeapon);
 		}
 	else

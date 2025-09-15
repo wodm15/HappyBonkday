@@ -37,7 +37,10 @@ protected:
 	virtual void DodgeEnd();
 	virtual bool CanAttack();
 	bool IsAlive();
-	virtual void Die(const FVector& ImpactPoint);
+
+	UFUNCTION(BlueprintNativeEvent)
+	void Die(const FVector& ImpactPoint);
+	
 	void PlayHitReactMontage(const FName& SectionName);
 	void DirectionalHitReact(const FVector& ImpactPoint);
 	void PlayHitSound(const FVector& ImpactPoint);

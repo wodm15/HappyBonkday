@@ -29,7 +29,7 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
-	virtual void Die(const FVector& ImpactPoint) override;
+	virtual void Die_Implementation(const FVector& ImpactPoint) override;
 	void SpawnSoul();
 	virtual void Attack() override;
 	virtual bool CanAttack() override;
@@ -126,4 +126,5 @@ private:
 
 	UPROPERTY(EditAnywhere , Category="Combat")
 	TSubclassOf<class ASoul> SoulClass;
+	
 };
