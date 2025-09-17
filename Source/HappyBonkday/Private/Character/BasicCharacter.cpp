@@ -86,6 +86,10 @@ void ABasicCharacter::InitializePlayerInput(APlayerController* PlayerController)
 			Subsystem->AddMappingContext(SlashContext, 0);
 		}
 	}
+	
+	FInputModeGameOnly InputMode;
+	PlayerController->SetInputMode(InputMode);
+	PlayerController->bShowMouseCursor = false; 
 }
 
 void ABasicCharacter::InitializeBasicOverlay(APlayerController* PlayerController)
