@@ -22,6 +22,16 @@ enum class EActionState : uint8
 };
 
 UENUM(BlueprintType)
+enum class EMovementDirection : uint8
+{
+    MD_Idle     UMETA(DisplayName = "Idle"),
+    MD_Forward  UMETA(DisplayName = "Forward"),
+    MD_Backward UMETA(DisplayName = "Backward"),
+    MD_Left     UMETA(DisplayName = "Left"),
+    MD_Right    UMETA(DisplayName = "Right")
+};
+
+UENUM(BlueprintType)
 enum class EDeathPos : uint8
 {
 	EDP_DeathLeft UMETA(DisplayName = "DeathLeft"),
