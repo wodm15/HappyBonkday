@@ -35,6 +35,10 @@ protected:
 	virtual void AttackEnd();
 	UFUNCTION(BlueprintCallable)
 	virtual void DodgeEnd();
+	UFUNCTION(BlueprintCallable)
+	virtual void CrounchEnd();
+	UFUNCTION(BlueprintCallable)
+	virtual void StandEnd();
 	virtual bool CanAttack();
 	bool IsAlive();
 
@@ -53,6 +57,8 @@ protected:
 	virtual int32 PlayAttackMontage();
 	virtual int32 PlayDeathMontage();
 	virtual void PlayDodgeMontage();
+	virtual void PlayCrounchMontage();
+	virtual void PlayStandMontage();
 	void StopAttackMontage();
 
 	UFUNCTION(BlueprintCallable)
@@ -80,6 +86,10 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly , Category = Combats)
 	UAnimMontage* DodgeMontage;
+	UPROPERTY(EditDefaultsOnly , Category = Combats)
+	UAnimMontage* CrounchMontage;
+	UPROPERTY(EditDefaultsOnly , Category = Combats)
+	UAnimMontage* StandMontage;
 
 	UPROPERTY(EditAnywhere , Category = Combat)
 	TArray<FName> AttackMontageSections;

@@ -51,10 +51,13 @@ protected:
 	void Look(const FInputActionValue& Value);
 	void EKeyPressed(const FInputActionValue& Value);
 	void Dodge(const FInputActionValue& Value);
+	void Crounch(const FInputActionValue& Value);
 
 	virtual void Attack() override;
 	virtual void AttackEnd() override;
 	virtual void DodgeEnd() override;
+	virtual void CrounchEnd() override;
+	virtual void StandEnd() override;
 	virtual bool CanAttack() override;
 
 	void EquipWeapon(AWeapon* Weapon);
@@ -80,6 +83,8 @@ protected:
 	UInputAction* AttackAction;
 	UPROPERTY(EditAnywhere , BlueprintReadOnly , Category = Input)
 	UInputAction* DodgeAction;
+	UPROPERTY(EditAnywhere , BlueprintReadOnly , Category = Input)
+	UInputAction* CrounchAction;
 
 
 
@@ -97,6 +102,8 @@ protected:
 private:
 	ECharacterState CharacterState = ECharacterState::ECS_Unequipped;
 	bool IsOccupied();
+	bool IsOccupiedOrCrounching();
+	bool IsCrounching = false;
 
 	UPROPERTY(BlueprintReadWrite , meta = (AllowPrivateAccess = "true"))
 	EActionState ActionState = EActionState::EAS_Unoccupied;
@@ -123,4 +130,5 @@ private:
 public:
 	FORCEINLINE ECharacterState GetCharacterState() const {return CharacterState; }
 	FORCEINLINE EActionState GetActionState() const { return ActionState; }
+	FORCEINLINE bool GetCrouching() const { return IsCrounching; }
 };

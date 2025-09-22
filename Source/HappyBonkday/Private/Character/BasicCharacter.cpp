@@ -130,12 +130,13 @@ void ABasicCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 		EnhancedInputComponent->BindAction(EKeyPressedAction , ETriggerEvent::Triggered , this , &ABasicCharacter::EKeyPressed);
 		EnhancedInputComponent->BindAction(AttackAction , ETriggerEvent::Triggered , this , &ABasicCharacter::Attack);
 		EnhancedInputComponent->BindAction(DodgeAction , ETriggerEvent::Triggered , this , &ABasicCharacter::Dodge);
+		EnhancedInputComponent->BindAction(CrounchAction , ETriggerEvent::Triggered , this , &ABasicCharacter::Crounch);
 	}
 
 }
 void ABasicCharacter::Jump()
 {
-	if(IsOccupied()) return;
+	if(IsOccupiedOrCrounching()) return;
 		
 	Super::Jump();
 	
@@ -143,8 +144,14 @@ void ABasicCharacter::Jump()
 
 bool ABasicCharacter::IsOccupied()
 {
-	return ActionState != EActionState::EAS_Unoccupied;
+	return (ActionState != EActionState::EAS_Unoccupied && ActionState != EActionState::EAS_Crounch);
 }
+
+bool ABasicCharacter::IsOccupiedOrCrounching()
+{
+	return (ActionState != EActionState::EAS_Unoccupied && ActionState != EActionState::EAS_Crounch);
+}
+
 
 float ABasicCharacter::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser)
 {
@@ -198,7 +205,7 @@ void ABasicCharacter::AddGold(class ATreasure* Treasure)
 
 void ABasicCharacter::Move(const FInputActionValue& Value)
 {
-	if(IsOccupied()) return;
+	if(IsOccupiedOrCrounching()) return;
 
 	const FVector2D MovementVector = Value.Get<FVector2D>();
 
@@ -218,7 +225,7 @@ void ABasicCharacter::Look(const FInputActionValue& Value)
 	if(GetController())
 	{
 		AddControllerYawInput(LookAxisValue.X);
-		AddControllerPitchInput(LookAxisValue.Y);
+		AddControllerPitchInput(-LookAxisValue.Y);
 	}
 }
 
@@ -262,6 +269,30 @@ void ABasicCharacter::Dodge(const FInputActionValue& Value)
 	}
 
 }
+
+
+void ABasicCharacter::Crounch(const FInputActionValue& Value)
+{
+	if(IsOccupiedOrCrounching() || !HasEnoughStamina()) return;
+
+	if (ActionState == EActionState::EAS_Crounch)
+	{
+		PlayStandMontage();
+		IsCrounching = false;
+	}
+	else
+	{
+		PlayCrounchMontage();
+		IsCrounching = true;
+	}
+
+	if(Attributes && BasicOverlay)
+	{
+		Attributes->UseStamina(Attributes->GetCrounchCost());
+		BasicOverlay->SetStaminaProgressBar(Attributes->GetStaminaPercent());
+	}
+}
+
 
 bool ABasicCharacter::HasEnoughStamina()
 {
@@ -358,6 +389,16 @@ void ABasicCharacter::AttackEnd()
 }
 
 void ABasicCharacter::DodgeEnd()
+{
+	ActionState =  EActionState::EAS_Unoccupied;
+}
+
+void ABasicCharacter::CrounchEnd()
+{
+	ActionState =  EActionState::EAS_Crounch;
+}
+
+void ABasicCharacter::StandEnd()
 {
 	ActionState =  EActionState::EAS_Unoccupied;
 }

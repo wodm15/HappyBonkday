@@ -24,7 +24,21 @@ void UBasicAnimInstance::NativeUpdateAnimation(float DeltaTime)
     if(BasicCharacterMovement)
     {
         GroundSpeed = UKismetMathLibrary::VSizeXY(BasicCharacterMovement->Velocity);
+
+        FVector Velocity = BasicCharacterMovement->Velocity;
+        if (Velocity.IsNearlyZero())
+        {
+            Angle = 0.f;
+        }
+        else
+        {
+            FVector LocalVelocity = BasicCharacter->GetActorTransform().InverseTransformVector(Velocity);
+            FRotator RotFromX = UKismetMathLibrary::MakeRotFromX(LocalVelocity);
+            Angle = RotFromX.Yaw;            
+        }
+        
         IsFalling = BasicCharacterMovement->IsFalling();
+        IsCrounching = BasicCharacter->GetCrouching();
         CharacterState = BasicCharacter->GetCharacterState();
         ActionState = BasicCharacter->GetActionState();
         DeathPos = BasicCharacter->GetDeathPos();

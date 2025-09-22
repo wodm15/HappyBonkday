@@ -71,6 +71,16 @@ void ABaseCharacter::DodgeEnd()
 
 }
 
+void ABaseCharacter::CrounchEnd()
+{
+
+}
+
+void ABaseCharacter::StandEnd()
+{
+
+}
+
 bool ABaseCharacter::CanAttack()
 {
 	return true;
@@ -237,6 +247,14 @@ void ABaseCharacter::PlayDodgeMontage()
     PlayMontageSection(DodgeMontage , FName("Dodge1"));
 }
 
+void ABaseCharacter::PlayCrounchMontage()
+{
+    PlayMontageSection(CrounchMontage , FName("StandToCrounch"));
+}
+void ABaseCharacter::PlayStandMontage()
+{
+    PlayMontageSection(CrounchMontage , FName("CrounchToStand"));
+}
 
 void ABaseCharacter::StopAttackMontage()
 {

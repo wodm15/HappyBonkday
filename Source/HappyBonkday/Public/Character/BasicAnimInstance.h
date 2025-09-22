@@ -29,6 +29,10 @@ public:
 	UPROPERTY(BlueprintReadOnly , category = Movement)
 	bool IsFalling;
 	UPROPERTY(BlueprintReadOnly , category = Movement)
+	bool IsCrounching;
+	UPROPERTY(BlueprintReadOnly , category = Movement)
+	float Angle;
+	UPROPERTY(BlueprintReadOnly , category = Movement)
 	ECharacterState CharacterState;
 	UPROPERTY(BlueprintReadOnly , category = Movement)
 	EActionState ActionState;
