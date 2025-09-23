@@ -43,7 +43,7 @@ private:
 	UPROPERTY(EditAnywhere , Category = "Actor Attribute")
 	float DodgeCost = 15.f;
 	UPROPERTY(EditAnywhere , Category = "Actor Attribute")
-	float CrounchCost = 10.f;
+	float CrounchCost = 1.f;
 
 	UPROPERTY(EditAnywhere , Category = "Actor Attribute")
 	float StaminaRegenRate = 8.f;

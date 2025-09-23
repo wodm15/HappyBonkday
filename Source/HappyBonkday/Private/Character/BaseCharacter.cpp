@@ -249,11 +249,11 @@ void ABaseCharacter::PlayDodgeMontage()
 
 void ABaseCharacter::PlayCrounchMontage()
 {
-    PlayMontageSection(CrounchMontage , FName("StandToCrounch"));
+    PlayMontageSection(CrounchMontage , FName("CrounchToStand"));
 }
 void ABaseCharacter::PlayStandMontage()
 {
-    PlayMontageSection(CrounchMontage , FName("CrounchToStand"));
+    PlayMontageSection(StandMontage , FName("StandToCrounch"));
 }
 
 void ABaseCharacter::StopAttackMontage()

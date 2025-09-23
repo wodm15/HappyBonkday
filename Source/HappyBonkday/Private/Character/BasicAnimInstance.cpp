@@ -38,9 +38,9 @@ void UBasicAnimInstance::NativeUpdateAnimation(float DeltaTime)
         }
         
         IsFalling = BasicCharacterMovement->IsFalling();
-        IsCrounching = BasicCharacter->GetCrouching();
         CharacterState = BasicCharacter->GetCharacterState();
         ActionState = BasicCharacter->GetActionState();
+        StanceState = BasicCharacter->GetStanceState();
         DeathPos = BasicCharacter->GetDeathPos();
     }
 }

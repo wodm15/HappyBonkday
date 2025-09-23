@@ -3,6 +3,13 @@
 #pragma once
 
 UENUM(BlueprintType)
+enum class EStanceState : uint8
+{
+    ESS_Standing   UMETA(DisplayName = "Standing"),
+    ESS_Crouching  UMETA(DisplayName = "Crouching")
+};
+
+UENUM(BlueprintType)
 enum class ECharacterState : uint8
 {
 	ECS_Unequipped UMETA(DisplayName = "Unequipped"),
@@ -18,7 +25,7 @@ enum class EActionState : uint8
 	EAS_Attacking UMETA(DisplayName = "Attacking"),
 	EAS_EquippingWeapon UMETA(DisplayName = "EquippingWeapon"),
 	EAS_Dodge UMETA(DisplayName = "Dodge"),
-	EAS_Crounch UMETA(DisplayName = "Crounch"),
+	EAS_Crounching UMETA(DisplayName = "Crounching"),
 	EAS_Dead UMETA(DisplayName = "Dead")
 };
 

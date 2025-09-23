@@ -96,7 +96,11 @@ protected:
 	UPROPERTY(EditAnywhere , Category = Combat)
 	TArray<FName> DeathMontageSections;
 
-
+	//MoveMent
+	UPROPERTY(EditAnywhere , Category = Combat)
+	float WalkSpeed = 300.f;
+	UPROPERTY(EditAnywhere , Category = Combat)
+	float CrounchSpeed = 100.f;
 
 private:
 	//Sound

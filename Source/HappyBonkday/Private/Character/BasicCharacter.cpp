@@ -136,7 +136,7 @@ void ABasicCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 }
 void ABasicCharacter::Jump()
 {
-	if(IsOccupiedOrCrounching()) return;
+	if(IsOccupied()) return;
 		
 	Super::Jump();
 	
@@ -144,14 +144,8 @@ void ABasicCharacter::Jump()
 
 bool ABasicCharacter::IsOccupied()
 {
-	return (ActionState != EActionState::EAS_Unoccupied && ActionState != EActionState::EAS_Crounch);
+	return (ActionState != EActionState::EAS_Unoccupied);
 }
-
-bool ABasicCharacter::IsOccupiedOrCrounching()
-{
-	return (ActionState != EActionState::EAS_Unoccupied && ActionState != EActionState::EAS_Crounch);
-}
-
 
 float ABasicCharacter::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser)
 {
@@ -205,7 +199,7 @@ void ABasicCharacter::AddGold(class ATreasure* Treasure)
 
 void ABasicCharacter::Move(const FInputActionValue& Value)
 {
-	if(IsOccupiedOrCrounching()) return;
+	if(IsOccupied()) return;
 
 	const FVector2D MovementVector = Value.Get<FVector2D>();
 
@@ -273,24 +267,26 @@ void ABasicCharacter::Dodge(const FInputActionValue& Value)
 
 void ABasicCharacter::Crounch(const FInputActionValue& Value)
 {
-	if(IsOccupiedOrCrounching() || !HasEnoughStamina()) return;
+    if (IsOccupied() || !HasEnoughStamina()) return;
 
-	if (ActionState == EActionState::EAS_Crounch)
-	{
-		PlayStandMontage();
-		IsCrounching = false;
-	}
-	else
-	{
-		PlayCrounchMontage();
-		IsCrounching = true;
-	}
+    if (StanceState == EStanceState::ESS_Crouching) 
+    {
+        PlayStandMontage();
+		ActionState = EActionState::EAS_Crounching;
+		GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
+    }
+    else 
+    {
+        PlayCrounchMontage();
+		ActionState = EActionState::EAS_Crounching;
+		GetCharacterMovement()->MaxWalkSpeed = CrounchSpeed;
+    }
 
-	if(Attributes && BasicOverlay)
-	{
-		Attributes->UseStamina(Attributes->GetCrounchCost());
-		BasicOverlay->SetStaminaProgressBar(Attributes->GetStaminaPercent());
-	}
+    if (Attributes && BasicOverlay)
+    {
+        Attributes->UseStamina(Attributes->GetCrounchCost());
+        BasicOverlay->SetStaminaProgressBar(Attributes->GetStaminaPercent());
+    }
 }
 
 
@@ -395,12 +391,14 @@ void ABasicCharacter::DodgeEnd()
 
 void ABasicCharacter::CrounchEnd()
 {
-	ActionState =  EActionState::EAS_Crounch;
+	ActionState = EActionState::EAS_Unoccupied;
+	StanceState = EStanceState::ESS_Crouching;
 }
 
 void ABasicCharacter::StandEnd()
 {
-	ActionState =  EActionState::EAS_Unoccupied;
+	ActionState = EActionState::EAS_Unoccupied;
+	StanceState = EStanceState::ESS_Standing;
 }
 
 void ABasicCharacter::FinishEquipping()

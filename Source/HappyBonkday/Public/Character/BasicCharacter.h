@@ -102,11 +102,10 @@ protected:
 private:
 	ECharacterState CharacterState = ECharacterState::ECS_Unequipped;
 	bool IsOccupied();
-	bool IsOccupiedOrCrounching();
-	bool IsCrounching = false;
 
 	UPROPERTY(BlueprintReadWrite , meta = (AllowPrivateAccess = "true"))
 	EActionState ActionState = EActionState::EAS_Unoccupied;
+	EStanceState StanceState = EStanceState::ESS_Standing;
 
 	//camera
 	UPROPERTY(VisibleAnywhere)
@@ -130,5 +129,5 @@ private:
 public:
 	FORCEINLINE ECharacterState GetCharacterState() const {return CharacterState; }
 	FORCEINLINE EActionState GetActionState() const { return ActionState; }
-	FORCEINLINE bool GetCrouching() const { return IsCrounching; }
+	FORCEINLINE EStanceState GetStanceState() const { return StanceState; }
 };
