@@ -33,7 +33,10 @@ AEnemy::AEnemy()
 
 	PawnSensing = CreateDefaultSubobject<UPawnSensingComponent>(TEXT("PawnSensing"));
 	PawnSensing->SightRadius = 4000.f;
-	PawnSensing->SetPeripheralVisionAngle(45.f);
+	PawnSensing->SetPeripheralVisionAngle(60.f);
+    PawnSensing->bOnlySensePlayers = false;
+
+
 }
 
 void AEnemy::BeginPlay()
@@ -43,12 +46,15 @@ void AEnemy::BeginPlay()
     InitializeEnemy();
 
     Tags.Add(FName("Enemy"));
+
 }
 
 void AEnemy::InitializeEnemy()
 {
     EnemyController = Cast<AAIController>(GetController());
     HideHealthBar();
+
+    PatrolTarget = ChoosePatrolTarget(); 
     MoveToTarget(PatrolTarget);
     SpawnDefaultWeapon();
 }
@@ -128,7 +134,7 @@ void AEnemy::Tick(float DeltaTime)
     {
         CheckCombatTarget();
     }
-    else
+    else if(EnemyState <= EEnemyState::EES_Patrolling)
     {
         CheckPatrolTarget();
     }
@@ -204,7 +210,12 @@ AActor* AEnemy::ChoosePatrolTarget()
     if(NumPatrolTargets > 0)
     {
         const int32 TargetSelection = FMath::RandRange(0 , NumPatrolTargets-1);
+        UE_LOG(LogTemp, Display, TEXT("ValidTargets[TargetSelection]"));
         return ValidTargets[TargetSelection];
+    }
+    else
+    {
+        UE_LOG(LogTemp, Display, TEXT("no Numpatrol"));
     }
 
     return nullptr;
@@ -288,7 +299,11 @@ void AEnemy::SpawnSoul()
 
 bool AEnemy::InTargetRange(AActor* Target , double Radius)
 {
-    if(Target == nullptr) return false;
+    if(Target == nullptr)
+    {
+        UE_LOG(LogTemp, Display, TEXT("Target is null"));
+        return false;
+    }
     const double DistanceToTarget = (Target->GetActorLocation() - GetActorLocation()).Size();
     return DistanceToTarget <= Radius;
 }

@@ -9,6 +9,14 @@
 class USoundBase;
 class UBoxComponent;
 
+UENUM(BlueprintType)
+enum class EWeaponType : uint8
+{
+    EWT_ToyHammer      UMETA(DisplayName="ToyHammer"), // onehand
+    EWT_Sword       UMETA(DisplayName="Sword") // onehand
+};
+
+
 UCLASS()
 class HAPPYBONKDAY_API AWeapon : public AItem
 {
@@ -57,8 +65,11 @@ private:
 	USceneComponent* BoxTraceEnd;
 	UPROPERTY(EditAnywhere , Category = "Weapon Properies")
 	float Damage = 20.f;
+	UPROPERTY(EditAnywhere , Category = "Weapon Properties")
+	EWeaponType WeaponType;
 
 public:
 	FORCEINLINE UBoxComponent* GetWeaponBox() const { return WeaponBox;}
 	FORCEINLINE void ClearIgnoredActors() { IgnoreActors.Empty(); }
+	FORCEINLINE EWeaponType GetWeaponType() const { return WeaponType;}
 };

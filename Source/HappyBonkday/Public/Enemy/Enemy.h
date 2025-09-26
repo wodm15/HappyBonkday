@@ -97,7 +97,7 @@ private:
 	UPROPERTY(EditInstanceOnly , Category= "AI Navigation")
 	AActor* PatrolTarget;
 
-	UPROPERTY(EditInstanceOnly , Category= "AI Navigation")
+	UPROPERTY(EditInstanceOnly, Category= "AI Navigation")
 	TArray<AActor*> PatrolTargets;
 
 	UPROPERTY(EditAnywhere)

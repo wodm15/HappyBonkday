@@ -62,11 +62,13 @@ protected:
 
 	void EquipWeapon(AWeapon* Weapon);
 	void PlayEquipMontage(FName SectionName);
+	void CheckWeaponType(AWeapon* Weapon);
+	void CheckWeaponTypeBack(AWeapon* Weapon);
 	bool HasEnoughStamina();
 	bool CanDisarm();
 	bool CanArm();
 	void DisArm();
-	void Arm();
+	void Arm(AWeapon* Weapon);
 
 
 	UPROPERTY(EditAnywhere , BlueprintReadOnly , Category = Input)

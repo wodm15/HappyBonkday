@@ -242,7 +242,7 @@ void ABasicCharacter::EKeyPressed(const FInputActionValue& Value)
 			}
 		else if(CanArm())
 			{
-				Arm();
+				Arm(EquippedWeapon);
 			}
 		}
 
@@ -298,7 +298,7 @@ bool ABasicCharacter::HasEnoughStamina()
 bool ABasicCharacter::CanDisarm()
 {
     return ActionState == EActionState::EAS_Unoccupied && 
-           CharacterState == ECharacterState::ECS_EquippedOneHandedWeapon &&
+           CharacterState >= ECharacterState::ECS_EquippedOneHandedWeapon &&
            EquippedWeapon;
 }
 
@@ -317,10 +317,10 @@ void ABasicCharacter::DisArm()
 }
 
 
-void ABasicCharacter::Arm()
+void ABasicCharacter::Arm(AWeapon* Weapon)
 {
 	PlayEquipMontage(FName("Equip"));
-	CharacterState = ECharacterState::ECS_EquippedOneHandedWeapon;
+	CheckWeaponType(Weapon);
 	ActionState = EActionState::EAS_EquippingWeapon;
 }
 
@@ -346,7 +346,7 @@ void ABasicCharacter::AttachWeaponToBack()
 {
 	if(EquippedWeapon)
 	{
-		EquippedWeapon->AttachMeshToSocket(GetMesh(), FName("SpineSocket"));
+		CheckWeaponTypeBack(EquippedWeapon);
 	}
 }
 
@@ -355,18 +355,52 @@ void ABasicCharacter::AttachWeaponToHand()
 {
 	if(EquippedWeapon)
 	{
-		EquippedWeapon->AttachMeshToSocket(GetMesh(), FName("HandRightSocket"));
+		CheckWeaponType(EquippedWeapon);
 	}
 }
 
 
 void ABasicCharacter::EquipWeapon(AWeapon* Weapon)
 {
-		Weapon->Equip(GetMesh() , FName("HandRightSocket") , this , this);
-		CharacterState = ECharacterState::ECS_EquippedOneHandedWeapon;
+		CheckWeaponType(Weapon);
 		OverlappingItem = nullptr;
 		EquippedWeapon = Weapon;
 }
+
+void ABasicCharacter::CheckWeaponType(AWeapon* Weapon)
+{
+	if(Weapon->GetWeaponType() == EWeaponType::EWT_ToyHammer)
+	{
+		Weapon->AttachMeshToSocket(GetMesh(), FName("ToyHammerSocket"));
+		CharacterState = ECharacterState::ECS_EquippedOneHandedWeapon;
+	}
+	else if(Weapon->GetWeaponType() == EWeaponType::EWT_Sword)
+	{
+		CharacterState = ECharacterState::ECS_EquippedTwoHandedWeapon;
+		Weapon->Equip(GetMesh() , FName("SwordSocket") , this , this);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Weapon Type is not Defined"));
+		CharacterState = ECharacterState::ECS_EquippedOneHandedWeapon;
+	}
+}
+void ABasicCharacter::CheckWeaponTypeBack(AWeapon* Weapon)
+{
+	if(Weapon->GetWeaponType() == EWeaponType::EWT_ToyHammer)
+	{
+		Weapon->Equip(GetMesh() , FName("SpineToyHammer") , this , this);
+	}
+	else if(Weapon->GetWeaponType() == EWeaponType::EWT_Sword)
+	{
+		Weapon->Equip(GetMesh() , FName("SpineSword") , this , this);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Weapon Type is not Defined"));
+	}
+}
+
 
 void ABasicCharacter::PlayEquipMontage(FName SectionName)
 {
