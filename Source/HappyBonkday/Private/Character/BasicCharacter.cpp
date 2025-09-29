@@ -17,9 +17,12 @@
 
 #include "HUD/BasicHUD.h"
 #include "HUD/BasicOverlay.h"
+#include "HUD/GameEndOverlay.h"
 #include "Components/AttributeComponent.h"
 #include "Soul.h"
 #include "Treasure.h"
+
+#include "Kismet/GameplayStatics.h"
 
 ABasicCharacter::ABasicCharacter()
 {
@@ -74,6 +77,8 @@ void ABasicCharacter::Die_Implementation(const FVector& ImpactPoint)
 	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	GetCharacterMovement()->bOrientRotationToMovement = false;
     SetWeaponCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	CheckGameEndOverlay();
 }
 
 
@@ -182,6 +187,8 @@ void ABasicCharacter::AddSouls(class ASoul* Soul)
 	{
 		Attributes->AddSouls(Soul->GetSouls());
 		BasicOverlay->SetSouls(Attributes->GetSouls());
+
+		CheckGameEndOverlay();
 	}
 }
 
@@ -192,6 +199,8 @@ void ABasicCharacter::AddGold(class ATreasure* Treasure)
 	{
 		Attributes->AddGold(Treasure->GetGold());
 		BasicOverlay->SetGold(Attributes->GetGold());
+
+		CheckGameEndOverlay();
 	}
 }
 
@@ -225,12 +234,16 @@ void ABasicCharacter::Look(const FInputActionValue& Value)
 
 void ABasicCharacter::EKeyPressed(const FInputActionValue& Value)
 {
+	if(ActionState == EActionState::EAS_Attacking)
+        return; 
+
 	AWeapon* OverlappingWeapon = Cast<AWeapon>(OverlappingItem);
 	if(OverlappingWeapon)
 		{
 			if (EquippedWeapon)
 			{
 				EquippedWeapon->Destroy();
+				EquippedWeapon = nullptr;
 			}
 			EquipWeapon(OverlappingWeapon);
 		}
@@ -452,3 +465,53 @@ void ABasicCharacter::SetHUDHealth()
 		BasicOverlay->SetHealthProgressBar(Attributes->GetHealthPercent());
 	}
 }
+
+
+void ABasicCharacter::CheckGameEndOverlay()
+{
+    if (!Attributes || !BasicOverlay || !GameEndOverlayClass) return;
+
+    bool bIsWin = false;
+    bool bIsGameEnd = false;
+
+    if (Attributes->GetGold() >= BasicOverlay->GetGoldTarget() &&
+        Attributes->GetSouls() >= BasicOverlay->GetSoulsTarget())
+    {
+        bIsWin = true;
+        bIsGameEnd = true;
+    }
+
+    if (Attributes->GetHealthPercent() <= 0.f)
+    {
+        bIsWin = false;
+        bIsGameEnd = true;
+    }
+
+    if (bIsGameEnd)
+    {
+        UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 0.3f);
+
+        if (!GameEndOverlay)
+        {
+            APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+            if (PC)
+            {
+                GameEndOverlay = CreateWidget<UGameEndOverlay>(PC, GameEndOverlayClass);
+                GameEndOverlay->AddToViewport();
+
+                PC->bShowMouseCursor = true;
+                FInputModeUIOnly InputMode;
+                InputMode.SetWidgetToFocus(GameEndOverlay->TakeWidget());
+                InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+                PC->SetInputMode(InputMode);
+            }
+        }
+
+        if (GameEndOverlay)
+        {
+            GameEndOverlay->SetupGameEndOverlay(bIsWin);
+        }
+    }
+
+}
+

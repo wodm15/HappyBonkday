@@ -126,8 +126,16 @@ private:
 
 	UPROPERTY()
 	UBasicOverlay* BasicOverlay;
+	
+	UPROPERTY(EditAnywhere, Category="UI")
+	TSubclassOf<class UGameEndOverlay> GameEndOverlayClass;
+
+UPROPERTY()
+UGameEndOverlay* GameEndOverlay;
+
 
 	void SetHUDHealth();
+	void CheckGameEndOverlay();
 public:
 	FORCEINLINE ECharacterState GetCharacterState() const {return CharacterState; }
 	FORCEINLINE EActionState GetActionState() const { return ActionState; }

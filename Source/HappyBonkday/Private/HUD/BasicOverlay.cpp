@@ -6,6 +6,20 @@
 #include "Components/TextBlock.h"
 
 
+void UBasicOverlay::NativeConstruct()
+{
+    Super::NativeConstruct();
+
+    if(GoldTargetText)
+    {
+        GoldTargetText->SetText(FText::AsNumber(GoldTarget));
+    }
+    if(SoulsTargetText)
+    {
+        SoulsTargetText->SetText(FText::AsNumber(SoulsTarget));
+    }
+}
+
 void UBasicOverlay::SetHealthProgressBar(float Percent)
 {
     if(HealthProgressBar)
@@ -43,3 +57,5 @@ void UBasicOverlay::SetSouls(int32 Souls)
         SoulsText->SetText( Text );
     }
 }
+
+
