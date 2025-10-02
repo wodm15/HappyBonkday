@@ -111,7 +111,7 @@ Sphere->OnComponentEndOverlap.AddDynamic(this , &AItem::OnSphereOverLapEnd);
 
 ## 5. 기술적 도전
 
-### ✅ 기술적 도전 1. c++과 블루프린트를 동시에 사용 **
+### ✅ 기술적 도전 1. c++과 블루프린트를 동시에 사용
 
 → blueprintNative 이벤트 사용하여 c++ 를 거쳐 사운드만 블루프린트로 가도록 설계 
 
@@ -175,8 +175,6 @@ Sphere->OnComponentEndOverlap.AddDynamic(this , &AItem::OnSphereOverLapEnd);
 → 복잡하게 설계되어있던 IK와 MainState 애니메이션 블루프린트를 분리한 새로운 애니메이션 블루프린트 생성
 
 <img width="384" height="267" alt="image" src="https://github.com/user-attachments/assets/4f0e2bdb-0d37-4fd6-83f1-a07445fe2d01" />
-
----
 
 ### ✅ 기술적 도전 9. 한손 무기, 두손 무기 장착에 따른 모션 변경
 
